@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -785,7 +786,9 @@
       const res = await fetch(`https://itunes.apple.com/search?term=${q}&media=music&entity=album&limit=1`);
       const data = await res.json();
       if (data.results && data.results.length > 0) {
-        const url = data.results[0].artworkUrl100.replace('100x100', '300x300');
+        const url = data.results[0].artworkUrl100
+          .replace('http://', 'https://')
+          .replace('100x100', '300x300');
         artCache[key] = url;
         return url;
       }
