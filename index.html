@@ -147,24 +147,24 @@ img{display:block;}
 /* ── GENRE FILTERS ── */
 .filters-wrap {
   border-bottom:1px solid var(--border);background:var(--bg);
-  padding:0;position:relative;
+  padding:8px 16px;display:flex;gap:8px;align-items:center;
 }
-.filters {
-  display:flex;gap:5px;padding:8px 16px;
-  overflow-x:auto;-webkit-overflow-scrolling:touch;
-  scrollbar-width:none;
+.filter-select {
+  padding:6px 10px;border-radius:6px;border:1px solid var(--border);
+  background:var(--bg2);color:var(--cream-d);font-size:11px;
+  outline:none;cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%236b5e52' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;padding-right:24px;
+  -webkit-appearance:none;appearance:none;transition:border-color .2s;
 }
-.filters::-webkit-scrollbar { display:none; }
-.filter-chip {
-  flex-shrink:0;padding:4px 13px;border-radius:20px;font-size:11px;font-weight:500;
-  color:var(--wg);border:1px solid transparent;transition:all .2s;white-space:nowrap;cursor:pointer;
+.filter-select:focus { border-color:var(--amber-d); }
+.filter-select.active { border-color:var(--amber);color:var(--amber); }
+.filter-fav-btn {
+  padding:6px 12px;border-radius:6px;font-size:11px;font-weight:600;
+  color:var(--amber);border:1px solid transparent;transition:all .2s;cursor:pointer;
 }
-.filter-chip:hover { color:var(--cream-d);border-color:var(--mg); }
-.filter-chip.active { color:var(--bg);font-weight:700;border-color:transparent; }
-
-/* fav filter chip special */
-.filter-fav       { color:var(--amber); }
-.filter-fav.active { background:var(--amber);color:var(--bg); }
+.filter-fav-btn:hover { border-color:var(--amber); }
+.filter-fav-btn.active { background:var(--amber);color:var(--bg);border-color:var(--amber); }
 
 /* ── RESULTS COUNT ── */
 .results-count {
@@ -205,18 +205,7 @@ img{display:block;}
 .album-card:hover .card-art { transform:scale(1.04); }
 @media(pointer:coarse){ .album-card:hover .card-art{transform:none;} }
 
-/* vinyl peek on hover */
-.card-vinyl {
-  position:absolute;top:0;right:-62%;width:100%;height:100%;border-radius:50%;
-  background:radial-gradient(circle at 50% 50%,
-    var(--bg) 20%,#2a2520 21%,var(--bg) 22%,#2a2520 23%,
-    #1c1814 30%,#2a2520 40%,var(--bg) 41%,#2a2520 42%,
-    #1c1814 55%,#2a2520 70%,var(--bg) 71%,#2a2520 72%,
-    #1c1814 85%,#2e2720 100%);
-  transition:right .35s cubic-bezier(.22,1,.36,1);opacity:.8;pointer-events:none;z-index:1;
-}
-.album-card:hover .card-vinyl { right:-30%; }
-@media(pointer:coarse){ .album-card:hover .card-vinyl{right:-62%;} }
+/* vinyl peek removed */
 
 /* fav button */
 .card-fav {
@@ -454,6 +443,45 @@ img{display:block;}
 .toast-success  { border-color:#5a9a6a;color:#5a9a6a; }
 .toast-error    { border-color:var(--red);color:var(--red); }
 
+/* ── LIGHTBOX ── */
+.lightbox-overlay {
+  position:fixed;inset:0;z-index:300;
+  background:rgba(0,0,0,.88);
+  display:none;align-items:center;justify-content:center;
+  padding:24px;cursor:zoom-out;
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+}
+.lightbox-overlay.open { display:flex; }
+.lightbox-img {
+  max-width:min(520px, 90vw);max-height:90vh;
+  border-radius:6px;box-shadow:0 32px 80px rgba(0,0,0,.7);
+  animation:popIn .2s ease;cursor:default;
+  object-fit:contain;
+}
+.lightbox-caption {
+  position:absolute;bottom:32px;left:50%;transform:translateX(-50%);
+  text-align:center;pointer-events:none;
+}
+.lightbox-caption-artist {
+  font-family:'DM Serif Display',serif;font-size:20px;font-style:italic;
+  color:var(--cream);text-shadow:0 2px 12px rgba(0,0,0,.8);
+}
+.lightbox-caption-album {
+  font-size:13px;color:var(--cream-d);margin-top:2px;
+  text-shadow:0 2px 8px rgba(0,0,0,.8);
+}
+.lightbox-close {
+  position:absolute;top:20px;right:20px;
+  width:36px;height:36px;border-radius:50%;
+  background:rgba(255,255,255,.12);color:var(--cream);
+  font-size:18px;display:flex;align-items:center;justify-content:center;
+  transition:background .2s;cursor:pointer;
+}
+.lightbox-close:hover { background:rgba(255,255,255,.22); }
+
+/* make card art cursor a pointer/zoom */
+.card-art { cursor:zoom-in; }
+
 /* ── FOOTER ── */
 .footer {
   text-align:center;padding:48px 24px;
@@ -480,8 +508,7 @@ img{display:block;}
 
 <!-- HEADER -->
 <div class="header">
-  <div class="header-eyebrow">Personal Collection</div>
-  <h1>The Collection</h1>
+  <h1>The Faas Vinyl Collection</h1>
   <div class="header-stats">
     <div>
       <div class="header-stat-num" id="statRecords">—</div>
@@ -520,7 +547,10 @@ img{display:block;}
 
 <!-- GENRE FILTERS -->
 <div class="filters-wrap">
-  <div class="filters" id="filters"></div>
+  <select class="filter-select" id="genreSelect" onchange="onGenreSelect()">
+    <option value="">All Genres</option>
+  </select>
+  <button class="filter-fav-btn" id="favBtn" onclick="toggleFavFilter()">♥ Favorites</button>
 </div>
 
 <!-- RESULTS COUNT -->
@@ -531,6 +561,16 @@ img{display:block;}
   <div class="loading-state">
     <div class="spinner"></div>
     Loading your collection…
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox-overlay" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img class="lightbox-img" id="lightboxImg" src="" alt="" onclick="event.stopPropagation()">
+  <div class="lightbox-caption">
+    <div class="lightbox-caption-artist" id="lightboxArtist"></div>
+    <div class="lightbox-caption-album" id="lightboxAlbum"></div>
   </div>
 </div>
 
@@ -752,32 +792,45 @@ function renderStats() {
 }
 
 function renderFilters() {
-  // Collect all unique genres across all albums
   const counts = {};
   albums.forEach(a => (a.genres||[]).forEach(g => {
     counts[g] = (counts[g]||0) + 1;
   }));
   const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]);
 
-  let html = `<button class="filter-chip ${!activeGenre && !showFavsOnly ? 'active' : ''}"
-    style="${!activeGenre && !showFavsOnly ? 'background:var(--amber);color:var(--bg)' : ''}"
-    onclick="setFilter(null, false)">All</button>`;
-
-  html += `<button class="filter-chip filter-fav ${showFavsOnly ? 'active' : ''}"
-    onclick="setFilter(null, true)">♥ Favorites</button>`;
-
+  const sel = document.getElementById('genreSelect');
+  const current = sel.value;
+  sel.innerHTML = '<option value="">All Genres</option>';
   sorted.forEach(([g, c]) => {
-    const col = `var(${genreColor(g)})`;
-    const isActive = activeGenre === g;
-    const style = isActive
-      ? `background:${col};color:var(--bg);border-color:${col};`
-      : ``;
-    html += `<button class="filter-chip ${isActive ? 'active' : ''}"
-      style="${style}"
-      onclick="setFilter('${g.replace(/'/g,"\\'").replace(/"/g,'&quot;')}', false)">${g} <span style="opacity:.6">${c}</span></button>`;
+    const opt = document.createElement('option');
+    opt.value = g;
+    opt.textContent = `${g} (${c})`;
+    sel.appendChild(opt);
   });
+  // Restore selection if still valid
+  if (current && counts[current]) sel.value = current;
 
-  document.getElementById('filters').innerHTML = html;
+  sel.classList.toggle('active', !!activeGenre);
+  document.getElementById('favBtn').classList.toggle('active', showFavsOnly);
+}
+
+function onGenreSelect() {
+  activeGenre  = document.getElementById('genreSelect').value || null;
+  showFavsOnly = false;
+  document.getElementById('favBtn').classList.remove('active');
+  document.getElementById('genreSelect').classList.toggle('active', !!activeGenre);
+  renderCurrent();
+}
+
+function toggleFavFilter() {
+  showFavsOnly = !showFavsOnly;
+  if (showFavsOnly) {
+    activeGenre = null;
+    document.getElementById('genreSelect').value = '';
+    document.getElementById('genreSelect').classList.remove('active');
+  }
+  document.getElementById('favBtn').classList.toggle('active', showFavsOnly);
+  renderCurrent();
 }
 
 function setFilter(genre, favsOnly) {
@@ -848,8 +901,8 @@ function renderGrid() {
     <div class="album-card" style="animation-delay:${delay}ms">
       <div class="card-art-wrap">
         <img class="card-art" src="${art}" alt="${esc(a.artist)} - ${esc(a.album)}"
-             loading="lazy" onerror="this.src='${PLACEHOLDER}'">
-        <div class="card-vinyl"></div>
+             loading="lazy" onerror="this.src='${PLACEHOLDER}'"
+             onclick="event.stopPropagation();openLightbox(${idx})">
         <button class="card-fav ${favClass}" title="Favorite"
                 onclick="event.stopPropagation();toggleFav(${idx})">♥</button>
       </div>
@@ -1165,8 +1218,25 @@ function showToast(msg, type) {
   setTimeout(() => t.classList.remove('show'), 3200);
 }
 
+// ═══════════════════════════════════════════
+//  LIGHTBOX
+// ═══════════════════════════════════════════
+function openLightbox(idx) {
+  const a   = albums[idx];
+  const art = getArt(a);
+  document.getElementById('lightboxImg').src        = art;
+  document.getElementById('lightboxImg').alt        = `${a.artist} — ${a.album}`;
+  document.getElementById('lightboxArtist').textContent = a.artist;
+  document.getElementById('lightboxAlbum').textContent  = a.album;
+  document.getElementById('lightbox').classList.add('open');
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+}
+
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closeAddModal();
+  if (e.key === 'Escape') { closeAddModal(); closeLightbox(); }
 });
 </script>
 </body>
