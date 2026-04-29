@@ -649,6 +649,7 @@ async function init() {
 async function loadFromSheets() {
   try {
     const res  = await fetch(SHEETS_URL);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     albums = data.albums || [];
     // Pre-populate art cache from saved URLs
@@ -656,8 +657,8 @@ async function loadFromSheets() {
       if (a.artUrl) artCache[artKey(a)] = a.artUrl;
     });
     renderAll();
-    // Fetch missing art in the background
-    fetchMissingArt();
+    // Fetch missing art in the background — errors are silent
+    fetchMissingArt().catch(()=>{});
   } catch(err) {
     console.error('Failed to load from Sheets:', err);
     document.getElementById('content').innerHTML = `
@@ -675,22 +676,23 @@ function artKey(a) { return `${a.artist}|||${a.album}`; }
 // ═══════════════════════════════════════════
 async function fetchMissingArt() {
   const missing = albums.filter(a => !artCache[artKey(a)]);
-  // Batch of 8 at a time to stay under iTunes rate limit
-  for (let i = 0; i < missing.length; i += 8) {
-    const batch = missing.slice(i, i + 8);
-    await Promise.all(batch.map(async a => {
+  // One at a time with a delay to stay under iTunes rate limit
+  for (let i = 0; i < missing.length; i++) {
+    const a = missing[i];
+    try {
       const url = await fetchArtForAlbum(a.artist, a.album);
       artCache[artKey(a)] = url;
-      // Save back to sheet (column E)
-      if (url !== PLACEHOLDER) {
+      if (url && url !== PLACEHOLDER) {
         fetch(SHEETS_URL, {
           method:'POST',
           body:JSON.stringify({ action:'updateArt', rowIndex:a.rowIndex, artUrl:url })
         }).catch(()=>{});
       }
-      renderCurrent(); // progressive update
-    }));
-    if (i + 8 < missing.length) await sleep(3000); // ~3s between batches
+      renderCurrent();
+    } catch(e) {
+      artCache[artKey(a)] = PLACEHOLDER;
+    }
+    await sleep(1500); // 1.5s between each fetch
   }
 }
 
@@ -698,6 +700,7 @@ async function fetchArtForAlbum(artist, album) {
   try {
     const q   = encodeURIComponent(`${artist} ${album}`);
     const res = await fetch(`https://itunes.apple.com/search?term=${q}&media=music&entity=album&limit=1`);
+    if (!res.ok) return PLACEHOLDER;
     const d   = await res.json();
     if (d.results && d.results.length) {
       return d.results[0].artworkUrl100
