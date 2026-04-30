@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1a1714">
+<title>Faas Vinyl — Login</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:    #1a1714;
+  --card:  #231f1c;
+  --border:#302a25;
+  --amber: #d4883a;
+  --amber-l:#e8a85c;
+  --cream: #ede6dd;
+  --cream-d:#b8aa98;
+  --wg:    #6b5e52;
+  --fg:    #352f28;
+  --red:   #c45c5c;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body {
+  background:var(--bg);color:var(--cream);
+  font-family:'DM Sans',system-ui,sans-serif;
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  padding:24px;
+}
+body::before {
+  content:'';position:fixed;inset:0;
+  background:radial-gradient(ellipse at 50% 40%, #d4883a08 0%, transparent 60%);
+  pointer-events:none;
+}
+
+.card {
+  background:var(--card);border-radius:16px;border:1px solid var(--border);
+  padding:40px 36px;width:100%;max-width:360px;text-align:center;
+  box-shadow:0 24px 64px rgba(0,0,0,.5);
+  position:relative;
+}
+
+.brand {
+  font-family:'DM Serif Display',serif;font-size:28px;font-style:italic;
+  color:var(--cream);margin-bottom:4px;
+}
+.brand span { color:var(--amber); }
+
+.eyebrow {
+  font-family:'JetBrains Mono',monospace;font-size:9px;
+  letter-spacing:3px;text-transform:uppercase;
+  color:var(--wg);margin-bottom:32px;display:block;
+}
+
+.vinyl-icon {
+  width:72px;height:72px;border-radius:50%;margin:0 auto 28px;
+  background:radial-gradient(circle at 50% 50%,
+    var(--bg) 20%,#2a2520 21%,var(--bg) 22%,#2a2520 23%,
+    #1c1814 30%,#2a2520 40%,var(--bg) 41%,#2a2520 42%,
+    #1c1814 55%,#2a2520 70%,var(--bg) 71%,#2a2520 72%,
+    #1c1814 85%,#2e2720 100%);
+  border:1px solid var(--border);position:relative;
+}
+.vinyl-icon::after {
+  content:'';position:absolute;top:50%;left:50%;
+  width:16px;height:16px;border-radius:50%;
+  transform:translate(-50%,-50%);
+  background:radial-gradient(circle, var(--amber) 30%, var(--bg) 32%);
+}
+
+.form-label {
+  display:block;
+  font-family:'JetBrains Mono',monospace;font-size:9px;
+  letter-spacing:2px;text-transform:uppercase;
+  color:var(--wg);margin-bottom:8px;text-align:left;
+}
+
+.pin-input {
+  width:100%;padding:14px 16px;border-radius:8px;
+  border:1px solid var(--border);background:var(--bg);
+  color:var(--cream);font-size:24px;font-family:'JetBrains Mono',monospace;
+  letter-spacing:8px;text-align:center;outline:none;
+  transition:border-color .2s;
+  -webkit-text-security:disc;
+}
+.pin-input:focus { border-color:var(--amber); }
+.pin-input::placeholder { letter-spacing:2px;font-size:14px;color:var(--wg); }
+
+.btn {
+  width:100%;margin-top:14px;padding:13px;border-radius:8px;
+  background:var(--amber);color:var(--bg);
+  font-size:14px;font-weight:700;cursor:pointer;border:none;
+  font-family:'DM Sans',sans-serif;
+  transition:background .2s,transform .1s;
+}
+.btn:hover  { background:var(--amber-l); }
+.btn:active { transform:scale(.98); }
+
+.error {
+  margin-top:12px;font-size:12px;color:var(--red);
+  min-height:18px;
+}
+
+.shake {
+  animation:shake .35s ease;
+}
+@keyframes shake {
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-8px)}
+  40%{transform:translateX(8px)}
+  60%{transform:translateX(-6px)}
+  80%{transform:translateX(6px)}
+}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="vinyl-icon"></div>
+  <div class="brand">Faas <span>Vinyl</span></div>
+  <span class="eyebrow">Private Collection</span>
+
+  <label class="form-label" for="pin">Enter PIN to continue</label>
+  <input type="password" class="pin-input" id="pin"
+         placeholder="· · · ·" maxlength="10"
+         autocomplete="current-password"
+         onkeydown="if(event.key==='Enter')checkPin()">
+  <button class="btn" onclick="checkPin()">Enter Collection</button>
+  <div class="error" id="error"></div>
+</div>
+
+<script>
+function checkPin() {
+  const val = document.getElementById('pin').value.trim();
+  if (val === '6910') {
+    // Set auth cookie for 30 days
+    const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toUTCString();
+    document.cookie = `fvc_auth=6910;path=/;expires=${expires};SameSite=Lax`;
+    window.location.href = '/';
+  } else {
+    const input = document.getElementById('pin');
+    const error = document.getElementById('error');
+    input.value = '';
+    error.textContent = 'Incorrect PIN — try again';
+    input.classList.remove('shake');
+    void input.offsetWidth; // reflow to restart animation
+    input.classList.add('shake');
+    input.focus();
+  }
+}
+</script>
+</body>
+</html>

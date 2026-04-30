@@ -1,0 +1,10 @@
+{
+  "outputDirectory": ".",
+  "builds": [
+    { "src": "*.html", "use": "@vercel/static" }
+  ],
+  "routes": [
+    { "src": "/login", "dest": "/login.html" },
+    { "src": "/",      "dest": "/index.html"  }
+  ]
+}
