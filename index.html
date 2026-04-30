@@ -641,6 +641,15 @@ img{display:block;}
 <div class="toast" id="toast"></div>
 
 <script>
+// ── AUTH CHECK ──
+(function() {
+  const cookies = document.cookie.split(';').map(c => c.trim());
+  const auth = cookies.find(c => c.startsWith('fvc_auth='));
+  if (!auth || auth.split('=')[1] !== '6910') {
+    window.location.href = '/login';
+  }
+})();
+
 // ═══════════════════════════════════════════
 //  CONFIG
 // ═══════════════════════════════════════════
