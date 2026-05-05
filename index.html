@@ -117,7 +117,7 @@ img{display:block;}
   pointer-events:none;opacity:.45;
 }
 .search-box {
-  width:100%;padding:8px 12px 8px 32px;border-radius:7px;
+  width:100%;padding:8px 36px 8px 32px;border-radius:7px;
   border:1px solid var(--border);background:var(--bg2);
   color:var(--cream);font-size:13px;outline:none;
   transition:border-color .2s;
@@ -125,6 +125,18 @@ img{display:block;}
 .search-box:focus { border-color:var(--amber-d); }
 .search-box::placeholder { color:var(--wg); }
 @media(max-width:640px){ .search-box{font-size:16px;} }
+
+/* search clear button */
+.search-clear {
+  position:absolute;right:8px;top:50%;transform:translateY(-50%);
+  width:24px;height:24px;border-radius:50%;background:var(--fg);
+  color:var(--wg);font-size:13px;
+  display:none;align-items:center;justify-content:center;
+  padding:0;line-height:1;cursor:pointer;border:none;
+  transition:all .15s;
+}
+.search-clear:hover { background:var(--mg);color:var(--cream); }
+.search-clear.visible { display:flex; }
 
 .ctrl-sep { width:1px;height:20px;background:var(--border);flex-shrink:0; }
 .view-btn {
@@ -204,8 +216,6 @@ img{display:block;}
 }
 .album-card:hover .card-art { transform:scale(1.04); }
 @media(pointer:coarse){ .album-card:hover .card-art{transform:none;} }
-
-/* vinyl peek removed */
 
 /* fav button */
 .card-fav {
@@ -532,6 +542,7 @@ img{display:block;}
       <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
     </svg>
     <input type="search" class="search-box" id="searchBox" placeholder="Artist, album, or genre…">
+    <button class="search-clear" id="searchClear" onclick="clearSearch()">✕</button>
   </div>
   <div class="ctrl-sep"></div>
   <button class="view-btn active" id="btnGrid" onclick="setView('grid')">Grid</button>
@@ -805,7 +816,7 @@ function renderFilters() {
   albums.forEach(a => (a.genres||[]).forEach(g => {
     counts[g] = (counts[g]||0) + 1;
   }));
-  const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]);
+  const sorted = Object.entries(counts).sort((a,b) => a[0].localeCompare(b[0]));
 
   const sel = document.getElementById('genreSelect');
   const current = sel.value;
@@ -996,8 +1007,19 @@ function setupSearch() {
   let t;
   document.getElementById('searchBox').addEventListener('input', e => {
     clearTimeout(t);
-    t = setTimeout(() => { searchQuery = e.target.value.trim(); renderCurrent(); }, 180);
+    t = setTimeout(() => {
+      searchQuery = e.target.value.trim();
+      document.getElementById('searchClear').classList.toggle('visible', !!searchQuery);
+      renderCurrent();
+    }, 180);
   });
+}
+
+function clearSearch() {
+  document.getElementById('searchBox').value = '';
+  searchQuery = '';
+  document.getElementById('searchClear').classList.remove('visible');
+  renderCurrent();
 }
 
 // ═══════════════════════════════════════════
