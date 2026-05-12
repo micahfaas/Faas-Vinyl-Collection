@@ -26,6 +26,11 @@
   --mg:     #4a4038;
   --fg:     #352f28;
   --red:    #c45c5c;
+  --green:  #5a9a6a;
+  --green-l:#7ab88a;
+  --green-d:#3f7a4f;
+  --blue:   #6b8fc4;
+  --blue-l: #8ba8d8;
 
   /* Genre palette — 12 curated colors */
   --g0: #d4883a; --g1: #5a9a6a; --g2: #6b8fc4; --g3: #b87db8;
@@ -39,11 +44,11 @@ body{
   background:var(--bg);color:var(--cream);
   font-family:'DM Sans',system-ui,sans-serif;
   line-height:1.5;min-height:100vh;overflow-x:hidden;
+  -webkit-tap-highlight-color:transparent;
 }
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;}
 input,select,textarea{font-family:inherit;color:inherit;background:none;}
 img{display:block;}
--webkit-tap-highlight-color: transparent;
 
 /* ── ANIMATIONS ── */
 @keyframes spin    { to{transform:rotate(360deg)} }
@@ -85,17 +90,12 @@ img{display:block;}
   background:radial-gradient(ellipse at 50% 0%, #d4883a0a 0%, transparent 65%);
   pointer-events:none;
 }
-.header-eyebrow {
-  font-family:'JetBrains Mono',monospace;font-size:9px;
-  letter-spacing:3px;text-transform:uppercase;
-  color:var(--amber);margin-bottom:12px;
-}
 .header h1 {
   font-family:'DM Serif Display',serif;font-size:44px;font-style:italic;
   line-height:1;letter-spacing:-1px;color:var(--cream);margin-bottom:8px;
 }
 .header-stats {
-  display:flex;justify-content:center;gap:32px;margin-top:20px;
+  display:flex;justify-content:center;gap:32px;margin-top:20px;flex-wrap:wrap;
 }
 .header-stat-num  {
   font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;
@@ -105,6 +105,7 @@ img{display:block;}
   font-size:9px;letter-spacing:2px;text-transform:uppercase;
   color:var(--wg);margin-top:2px;
 }
+.header-stat-num.wishlist-mode { color:var(--blue-l); }
 
 /* ── CONTROLS ── */
 .controls {
@@ -126,7 +127,6 @@ img{display:block;}
 .search-box::placeholder { color:var(--wg); }
 @media(max-width:640px){ .search-box{font-size:16px;} }
 
-/* search clear button */
 .search-clear {
   position:absolute;right:8px;top:50%;transform:translateY(-50%);
   width:24px;height:24px;border-radius:50%;background:var(--fg);
@@ -156,10 +156,10 @@ img{display:block;}
 }
 .sort-select:focus { border-color:var(--amber-d); }
 
-/* ── GENRE FILTERS ── */
+/* ── FILTERS ── */
 .filters-wrap {
   border-bottom:1px solid var(--border);background:var(--bg);
-  padding:8px 16px;display:flex;gap:8px;align-items:center;
+  padding:8px 16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;
 }
 .filter-select {
   padding:6px 10px;border-radius:6px;border:1px solid var(--border);
@@ -171,12 +171,46 @@ img{display:block;}
 }
 .filter-select:focus { border-color:var(--amber-d); }
 .filter-select.active { border-color:var(--amber);color:var(--amber); }
-.filter-fav-btn {
+
+/* Filter pill buttons */
+.filter-pill {
   padding:6px 12px;border-radius:6px;font-size:11px;font-weight:600;
-  color:var(--amber);border:1px solid transparent;transition:all .2s;cursor:pointer;
+  border:1px solid transparent;transition:all .2s;cursor:pointer;
+  display:inline-flex;align-items:center;gap:5px;
+  letter-spacing:.2px;
 }
-.filter-fav-btn:hover { border-color:var(--amber); }
-.filter-fav-btn.active { background:var(--amber);color:var(--bg);border-color:var(--amber); }
+.pill-fav        { color:var(--amber); }
+.pill-fav:hover  { border-color:var(--amber); }
+.pill-fav.active { background:var(--amber);color:var(--bg);border-color:var(--amber); }
+
+.pill-terra        { color:var(--green-l); }
+.pill-terra:hover  { border-color:var(--green); }
+.pill-terra.active { background:var(--green);color:#fff;border-color:var(--green); }
+
+.pill-wish        { color:var(--blue-l); }
+.pill-wish:hover  { border-color:var(--blue); }
+.pill-wish.active { background:var(--blue);color:#fff;border-color:var(--blue); }
+
+/* Terranaut sub-toggle */
+.terra-sub {
+  display:none;padding:6px 16px 10px;
+  border-bottom:1px solid var(--border);background:var(--bg);
+  gap:4px;align-items:center;flex-wrap:wrap;
+}
+.terra-sub.visible { display:flex; }
+.terra-sub-label {
+  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--wg);margin-right:6px;
+}
+.terra-sub-btn {
+  padding:4px 11px;border-radius:14px;font-size:10px;font-weight:600;
+  color:var(--cream-d);border:1px solid var(--border);background:var(--bg2);
+  letter-spacing:.4px;text-transform:uppercase;transition:all .15s;cursor:pointer;
+}
+.terra-sub-btn:hover { color:var(--cream); }
+.terra-sub-btn.active {
+  background:var(--green);color:#fff;border-color:var(--green);
+}
 
 /* ── RESULTS COUNT ── */
 .results-count {
@@ -212,12 +246,12 @@ img{display:block;}
 .card-art-wrap { position:relative;padding-top:100%;overflow:hidden;background:var(--fg); }
 .card-art {
   position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
-  transition:transform .3s ease;
+  transition:transform .3s ease;cursor:zoom-in;
 }
 .album-card:hover .card-art { transform:scale(1.04); }
 @media(pointer:coarse){ .album-card:hover .card-art{transform:none;} }
 
-/* fav button */
+/* fav button (top-right) */
 .card-fav {
   position:absolute;top:7px;right:7px;z-index:3;
   width:28px;height:28px;border-radius:50%;
@@ -230,6 +264,32 @@ img{display:block;}
 .card-fav.active { background:rgba(212,136,58,.25);color:var(--amber); }
 .card-fav:hover  { transform:scale(1.15); }
 @media(pointer:coarse){ .card-fav{opacity:1;} }
+
+/* Terranaut played checkmark (top-left) */
+.card-terra-check {
+  position:absolute;top:7px;left:7px;z-index:3;
+  height:24px;min-width:24px;padding:0 7px;border-radius:12px;
+  background:var(--green);color:#fff;
+  display:flex;align-items:center;justify-content:center;gap:3px;
+  font-size:11px;font-weight:700;letter-spacing:.3px;
+  box-shadow:0 2px 8px rgba(0,0,0,.4);
+  pointer-events:none;
+}
+.card-terra-check svg { width:11px;height:11px; }
+.card-terra-check-count {
+  font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;
+}
+
+/* Terranaut candidate (yellow dot, distinct from played) */
+.card-terra-candidate {
+  position:absolute;top:7px;left:7px;z-index:3;
+  width:18px;height:18px;border-radius:50%;
+  background:rgba(0,0,0,.55);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;color:var(--green-l);
+  box-shadow:0 2px 6px rgba(0,0,0,.4);
+  pointer-events:none;
+}
 
 .card-body { padding:10px 12px 12px; }
 .card-artist {
@@ -258,11 +318,30 @@ img{display:block;}
   display:flex;align-items:center;gap:12px;
   padding:10px 8px;border-bottom:1px solid var(--border);
   cursor:pointer;border-radius:7px;transition:background .15s;
+  position:relative;
 }
 .list-row:hover { background:var(--card); }
+.list-thumb-wrap { position:relative;flex-shrink:0; }
 .list-thumb {
   width:50px;height:50px;border-radius:5px;object-fit:cover;
-  background:var(--fg);flex-shrink:0;
+  background:var(--fg);
+  cursor:zoom-in;
+}
+.list-terra-check {
+  position:absolute;top:-4px;left:-4px;
+  width:18px;height:18px;border-radius:50%;
+  background:var(--green);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;
+  box-shadow:0 1px 4px rgba(0,0,0,.5);
+}
+.list-terra-check svg { width:9px;height:9px; }
+.list-terra-count {
+  position:absolute;bottom:-4px;left:-4px;
+  height:16px;min-width:16px;padding:0 4px;border-radius:8px;
+  background:var(--green-d);color:#fff;font-size:9px;font-weight:700;
+  font-family:'JetBrains Mono',monospace;
+  display:flex;align-items:center;justify-content:center;
 }
 .list-info { flex:1;min-width:0; }
 .list-artist {
@@ -289,7 +368,14 @@ img{display:block;}
   animation:fadeUp .4s ease;
 }
 .empty-icon { font-size:40px;margin-bottom:12px;opacity:.4; }
-.empty p    { font-size:14px; }
+.empty p    { font-size:14px;margin-bottom:16px; }
+.empty-cta {
+  display:inline-block;margin-top:8px;
+  padding:8px 16px;border-radius:7px;
+  background:var(--amber);color:var(--bg);font-size:12px;font-weight:700;
+  cursor:pointer;
+}
+.empty-cta:hover { background:var(--amber-l); }
 
 /* ── LOADING ── */
 .loading-state {
@@ -302,7 +388,7 @@ img{display:block;}
   animation:spin .7s linear infinite;
 }
 
-/* ── ADD ALBUM MODAL ── */
+/* ── MODAL (shared base) ── */
 .modal-overlay {
   position:fixed;inset:0;z-index:200;
   background:rgba(0,0,0,.72);
@@ -313,7 +399,7 @@ img{display:block;}
 }
 .modal-overlay.open { display:flex; }
 .modal {
-  background:var(--card);border-radius:14px;width:100%;max-width:460px;
+  background:var(--card);border-radius:14px;width:100%;max-width:480px;
   border:1px solid var(--mg);box-shadow:0 32px 80px rgba(0,0,0,.6);
   animation:popIn .25s ease;overflow:hidden;
   margin:auto 0;
@@ -333,13 +419,32 @@ img{display:block;}
 
 .modal-body { padding:20px 24px 28px; }
 
+/* ── ADD/EDIT MODE TOGGLE ── */
+.mode-toggle {
+  display:flex;background:var(--bg2);border:1px solid var(--border);
+  border-radius:8px;padding:3px;margin-bottom:18px;gap:2px;
+}
+.mode-toggle-btn {
+  flex:1;padding:8px 12px;border-radius:6px;
+  font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+  color:var(--wg);transition:all .2s;cursor:pointer;
+}
+.mode-toggle-btn.active.collection {
+  background:var(--amber);color:var(--bg);
+}
+.mode-toggle-btn.active.wishlist {
+  background:var(--blue);color:#fff;
+}
+
 /* art picker */
 .art-section { margin-bottom:18px;display:none; }
 .art-section.visible { display:block; }
-.art-picker-label {
+.art-picker-label,
+.form-label {
+  display:block;
   font-family:'JetBrains Mono',monospace;font-size:9px;
   letter-spacing:2px;text-transform:uppercase;color:var(--wg);
-  margin-bottom:8px;font-weight:500;
+  margin-bottom:6px;font-weight:500;
 }
 .art-options { display:flex;gap:8px;flex-wrap:wrap; }
 .art-opt {
@@ -374,12 +479,6 @@ img{display:block;}
 
 /* form fields */
 .form-group    { margin-bottom:15px; }
-.form-label    {
-  display:block;
-  font-family:'JetBrains Mono',monospace;font-size:9px;
-  letter-spacing:2px;text-transform:uppercase;
-  color:var(--wg);margin-bottom:6px;font-weight:500;
-}
 .form-input {
   width:100%;padding:10px 13px;border-radius:8px;
   border:1px solid var(--border);background:var(--bg);
@@ -388,6 +487,16 @@ img{display:block;}
 }
 .form-input:focus  { border-color:var(--amber-d); }
 .form-input::placeholder { color:var(--wg); }
+
+.form-textarea {
+  width:100%;padding:10px 13px;border-radius:8px;
+  border:1px solid var(--border);background:var(--bg);
+  color:var(--cream);font-size:13px;outline:none;
+  transition:border-color .2s;
+  resize:vertical;min-height:70px;font-family:inherit;
+}
+.form-textarea:focus { border-color:var(--amber-d); }
+.form-textarea::placeholder { color:var(--wg); }
 
 /* genre tag input */
 .genre-input-wrap {
@@ -418,10 +527,59 @@ img{display:block;}
 }
 
 .form-check {
-  display:flex;align-items:center;gap:9px;cursor:pointer;margin-bottom:18px;
+  display:flex;align-items:center;gap:9px;cursor:pointer;margin-bottom:14px;
 }
 .form-check input { accent-color:var(--amber);width:15px;height:15px;cursor:pointer; }
 .form-check span  { font-size:13px;color:var(--cream-d); }
+.form-check input.terra-check { accent-color:var(--green); }
+
+/* ── PLAYED DATES BLOCK ── */
+.played-section {
+  margin-bottom:14px;padding:12px;border-radius:8px;
+  background:var(--bg2);border:1px solid var(--border);
+}
+.played-section-header {
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:10px;
+}
+.played-list { display:flex;flex-direction:column;gap:6px; }
+.played-list-item {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:7px 10px;border-radius:6px;background:var(--card);
+  border:1px solid var(--border);
+}
+.played-list-item-date {
+  display:flex;align-items:center;gap:8px;
+  font-size:13px;color:var(--cream);white-space:nowrap;
+}
+.played-list-item-date svg { color:var(--green-l); }
+.played-list-item-remove {
+  width:22px;height:22px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;color:var(--wg);transition:all .15s;
+}
+.played-list-item-remove:hover { background:var(--red);color:#fff; }
+.played-list-empty {
+  font-size:11px;color:var(--wg);font-style:italic;padding:6px 0 2px;
+}
+.played-add-row {
+  display:flex;gap:8px;margin-top:10px;
+}
+.played-add-row input[type="date"] {
+  flex:1;padding:8px 10px;border-radius:6px;
+  border:1px solid var(--border);background:var(--bg);
+  color:var(--cream);font-size:13px;outline:none;
+  color-scheme:dark;
+}
+.played-add-row input[type="date"]:focus { border-color:var(--amber-d); }
+.played-add-btn {
+  padding:8px 14px;border-radius:6px;
+  background:var(--green);color:#fff;
+  font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;
+  transition:background .2s;
+}
+.played-add-btn:hover { background:var(--green-l); }
+.played-add-btn:disabled { opacity:.4;cursor:not-allowed; }
 
 .form-actions { display:flex;gap:10px;margin-top:20px; }
 .btn-primary {
@@ -431,6 +589,9 @@ img{display:block;}
 }
 .btn-primary:hover    { background:var(--amber-l); }
 .btn-primary:disabled { opacity:.4;cursor:not-allowed; }
+.btn-primary.wishlist { background:var(--blue); color:#fff; }
+.btn-primary.wishlist:hover { background:var(--blue-l); }
+
 .btn-secondary {
   padding:12px 18px;border-radius:8px;
   background:var(--fg);color:var(--cream-d);
@@ -438,19 +599,59 @@ img{display:block;}
 }
 .btn-secondary:hover { background:var(--mg);color:var(--cream); }
 
+.btn-danger {
+  padding:12px 16px;border-radius:8px;
+  background:transparent;color:var(--red);
+  border:1px solid var(--red);
+  font-size:13px;font-weight:600;transition:all .2s;
+}
+.btn-danger:hover { background:var(--red);color:#fff; }
+
+.btn-convert {
+  width:100%;padding:13px;border-radius:8px;
+  background:var(--amber);color:var(--bg);
+  font-size:14px;font-weight:700;letter-spacing:.3px;
+  margin-bottom:14px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:all .2s;
+}
+.btn-convert:hover { background:var(--amber-l); }
+.btn-convert svg { width:16px;height:16px; }
+
+/* delete confirm inline */
+.confirm-delete {
+  margin-top:14px;padding:14px;border-radius:8px;
+  background:var(--bg2);border:1px solid var(--red);
+  display:none;animation:popIn .2s ease;
+}
+.confirm-delete.visible { display:block; }
+.confirm-delete p {
+  font-size:13px;color:var(--cream-d);margin-bottom:12px;
+}
+.confirm-delete strong { color:var(--cream); }
+.confirm-delete-actions { display:flex;gap:8px; }
+.confirm-btn {
+  flex:1;padding:9px;border-radius:6px;
+  font-size:12px;font-weight:700;letter-spacing:.4px;
+}
+.confirm-btn-yes { background:var(--red);color:#fff; }
+.confirm-btn-yes:hover { filter:brightness(1.15); }
+.confirm-btn-no  { background:var(--fg);color:var(--cream-d); }
+.confirm-btn-no:hover { background:var(--mg);color:var(--cream); }
+
 /* ── TOAST ── */
 .toast {
   position:fixed;bottom:28px;left:50%;
   transform:translateX(-50%) translateY(80px);
   background:var(--card);border:1px solid var(--mg);
   padding:11px 22px;border-radius:8px;
-  font-size:13px;font-weight:600;z-index:300;
+  font-size:13px;font-weight:600;z-index:400;
   transition:transform .3s ease;
   box-shadow:0 8px 32px rgba(0,0,0,.45);
-  white-space:nowrap;
+  max-width:90vw;text-align:center;
 }
 .toast.show     { transform:translateX(-50%) translateY(0); }
-.toast-success  { border-color:#5a9a6a;color:#5a9a6a; }
+.toast-success  { border-color:var(--green);color:var(--green-l); }
 .toast-error    { border-color:var(--red);color:var(--red); }
 
 /* ── LIGHTBOX ── */
@@ -463,14 +664,14 @@ img{display:block;}
 }
 .lightbox-overlay.open { display:flex; }
 .lightbox-img {
-  max-width:min(520px, 90vw);max-height:90vh;
+  max-width:min(520px, 90vw);max-height:80vh;
   border-radius:6px;box-shadow:0 32px 80px rgba(0,0,0,.7);
   animation:popIn .2s ease;cursor:default;
   object-fit:contain;
 }
 .lightbox-caption {
-  position:absolute;bottom:32px;left:50%;transform:translateX(-50%);
-  text-align:center;pointer-events:none;
+  position:absolute;bottom:88px;left:50%;transform:translateX(-50%);
+  text-align:center;pointer-events:none;max-width:90vw;
 }
 .lightbox-caption-artist {
   font-family:'DM Serif Display',serif;font-size:20px;font-style:italic;
@@ -489,8 +690,19 @@ img{display:block;}
 }
 .lightbox-close:hover { background:rgba(255,255,255,.22); }
 
-/* make card art cursor a pointer/zoom */
-.card-art { cursor:zoom-in; }
+.lightbox-edit {
+  position:absolute;bottom:28px;left:50%;transform:translateX(-50%);
+  padding:10px 20px;border-radius:24px;
+  background:var(--amber);color:var(--bg);
+  font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  display:flex;align-items:center;gap:7px;cursor:pointer;
+  transition:all .2s;
+  box-shadow:0 8px 24px rgba(0,0,0,.5);
+}
+.lightbox-edit:hover { background:var(--amber-l);transform:translateX(-50%) translateY(-2px); }
+.lightbox-edit svg { width:13px;height:13px; }
+.lightbox-edit.wishlist { background:var(--blue);color:#fff; }
+.lightbox-edit.wishlist:hover { background:var(--blue-l); }
 
 /* ── FOOTER ── */
 .footer {
@@ -500,9 +712,16 @@ img{display:block;}
   font-family:'JetBrains Mono',monospace;letter-spacing:.5px;
 }
 
-/* ── SAFE AREA ── */
 @supports(padding-bottom:env(safe-area-inset-bottom)){
   .footer { padding-bottom:calc(48px + env(safe-area-inset-bottom)); }
+}
+
+/* Mobile niceties */
+@media(max-width:640px){
+  .header h1 { font-size:34px; }
+  .header-stats { gap:20px; }
+  .modal-body { padding:18px 18px 22px; }
+  .lightbox-caption { bottom:84px; }
 }
 </style>
 </head>
@@ -518,21 +737,8 @@ img{display:block;}
 
 <!-- HEADER -->
 <div class="header">
-  <h1>The Faas Vinyl Collection</h1>
-  <div class="header-stats">
-    <div>
-      <div class="header-stat-num" id="statRecords">—</div>
-      <div class="header-stat-label">Records</div>
-    </div>
-    <div>
-      <div class="header-stat-num" id="statArtists">—</div>
-      <div class="header-stat-label">Artists</div>
-    </div>
-    <div>
-      <div class="header-stat-num" id="statFavs">—</div>
-      <div class="header-stat-label">Favorites</div>
-    </div>
-  </div>
+  <h1 id="headerTitle">The Faas Vinyl Collection</h1>
+  <div class="header-stats" id="headerStats"></div>
 </div>
 
 <!-- CONTROLS -->
@@ -556,12 +762,22 @@ img{display:block;}
   </select>
 </div>
 
-<!-- GENRE FILTERS -->
+<!-- FILTERS -->
 <div class="filters-wrap">
   <select class="filter-select" id="genreSelect" onchange="onGenreSelect()">
     <option value="">All Genres</option>
   </select>
-  <button class="filter-fav-btn" id="favBtn" onclick="toggleFavFilter()">♥ Favorites</button>
+  <button class="filter-pill pill-fav"   id="favBtn"   onclick="setPrimaryFilter('fav')">♥ Favorites</button>
+  <button class="filter-pill pill-terra" id="terraBtn" onclick="setPrimaryFilter('terra')">🍺 Terranaut</button>
+  <button class="filter-pill pill-wish"  id="wishBtn"  onclick="setPrimaryFilter('wish')">📝 Wishlist</button>
+</div>
+
+<!-- Terranaut sub-toggle -->
+<div class="terra-sub" id="terraSub">
+  <span class="terra-sub-label">Show:</span>
+  <button class="terra-sub-btn active" data-terra-sub="all"        onclick="setTerraSub('all')">All</button>
+  <button class="terra-sub-btn"        data-terra-sub="candidates" onclick="setTerraSub('candidates')">Candidates</button>
+  <button class="terra-sub-btn"        data-terra-sub="played"     onclick="setTerraSub('played')">Played</button>
 </div>
 
 <!-- RESULTS COUNT -->
@@ -583,6 +799,12 @@ img{display:block;}
     <div class="lightbox-caption-artist" id="lightboxArtist"></div>
     <div class="lightbox-caption-album" id="lightboxAlbum"></div>
   </div>
+  <button class="lightbox-edit" id="lightboxEdit" onclick="event.stopPropagation();openEditModal(lightboxIdx)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+    </svg>
+    <span id="lightboxEditLabel">Edit</span>
+  </button>
 </div>
 
 <!-- FOOTER -->
@@ -591,14 +813,26 @@ img{display:block;}
   Bend, Oregon
 </div>
 
-<!-- ADD ALBUM MODAL -->
-<div class="modal-overlay" id="addModal" onclick="handleOverlayClick(event)">
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- ADD ALBUM MODAL                                     -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="addModal" onclick="handleOverlayClick(event, 'addModal')">
   <div class="modal">
     <div class="modal-header">
-      <span class="modal-title">Add a Record</span>
+      <span class="modal-title" id="addModalTitle">Add a Record</span>
       <button class="modal-close" onclick="closeAddModal()">✕</button>
     </div>
     <div class="modal-body">
+
+      <!-- Collection / Wishlist toggle -->
+      <div class="mode-toggle">
+        <button class="mode-toggle-btn active collection" id="modeCollectionBtn" onclick="setAddMode('collection')">
+          To Collection
+        </button>
+        <button class="mode-toggle-btn wishlist" id="modeWishlistBtn" onclick="setAddMode('wishlist')">
+          To Wishlist
+        </button>
+      </div>
 
       <!-- Art Picker -->
       <div class="art-section" id="artSection">
@@ -625,7 +859,6 @@ img{display:block;}
       <div class="form-group">
         <label class="form-label">Genres</label>
         <div class="genre-input-wrap" id="genreWrap" onclick="document.getElementById('genreText').focus()">
-          <!-- pills inserted here dynamically -->
           <input type="text" class="genre-text-input" id="genreText"
                  placeholder="Type a genre, press Enter or comma…"
                  autocomplete="off">
@@ -633,11 +866,23 @@ img{display:block;}
         <div class="genre-hint">Press Enter or comma to add each genre</div>
       </div>
 
-      <!-- Favorite -->
-      <label class="form-check">
+      <!-- Favorite checkbox (collection only) -->
+      <label class="form-check" id="favoriteRow">
         <input type="checkbox" id="fFavorite">
         <span>Mark as favorite ♥</span>
       </label>
+
+      <!-- Terranaut candidate checkbox (collection only) -->
+      <label class="form-check" id="terraCandidateRow">
+        <input type="checkbox" id="fTerraCandidate" class="terra-check">
+        <span>Terranaut candidate 🍺 — would be great for vinyl night</span>
+      </label>
+
+      <!-- Notes (always available) -->
+      <div class="form-group">
+        <label class="form-label" for="fNotes">Notes <span style="text-transform:none;letter-spacing:0;color:var(--wg)">(optional)</span></label>
+        <textarea class="form-textarea" id="fNotes" placeholder="e.g. Heard at Dilly Dally, recommended by Caleb…"></textarea>
+      </div>
 
       <div class="form-actions">
         <button class="btn-secondary" onclick="closeAddModal()">Cancel</button>
@@ -648,11 +893,103 @@ img{display:block;}
   </div>
 </div>
 
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- EDIT ALBUM MODAL                                    -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="editModal" onclick="handleOverlayClick(event, 'editModal')">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="editModalTitle">Edit Record</span>
+      <button class="modal-close" onclick="closeEditModal()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Convert wishlist → collection (only shown for wishlist items) -->
+      <button class="btn-convert" id="btnConvert" style="display:none" onclick="convertWishlistToOwned()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 6 9 17l-5-5"/>
+        </svg>
+        I Bought This — Move to Collection
+      </button>
+
+      <!-- Artist -->
+      <div class="form-group">
+        <label class="form-label" for="eArtist">Artist</label>
+        <input type="text" class="form-input" id="eArtist" autocomplete="off">
+      </div>
+
+      <!-- Album -->
+      <div class="form-group">
+        <label class="form-label" for="eAlbum">Album</label>
+        <input type="text" class="form-input" id="eAlbum" autocomplete="off">
+      </div>
+
+      <!-- Genres -->
+      <div class="form-group">
+        <label class="form-label">Genres</label>
+        <div class="genre-input-wrap" id="eGenreWrap" onclick="document.getElementById('eGenreText').focus()">
+          <input type="text" class="genre-text-input" id="eGenreText"
+                 placeholder="Type a genre, press Enter or comma…"
+                 autocomplete="off">
+        </div>
+        <div class="genre-hint">Press Enter or comma to add each genre</div>
+      </div>
+
+      <!-- Favorite -->
+      <label class="form-check" id="eFavoriteRow">
+        <input type="checkbox" id="eFavorite">
+        <span>Favorite ♥</span>
+      </label>
+
+      <!-- Terranaut candidate -->
+      <label class="form-check" id="eTerraCandidateRow">
+        <input type="checkbox" id="eTerraCandidate" class="terra-check">
+        <span>Terranaut candidate 🍺</span>
+      </label>
+
+      <!-- Played at Terranaut: list + add date -->
+      <div class="played-section" id="ePlayedSection">
+        <div class="played-section-header">
+          <label class="form-label" style="margin-bottom:0">Played at Terranaut</label>
+        </div>
+        <div class="played-list" id="ePlayedList"></div>
+        <div class="played-add-row">
+          <input type="date" id="ePlayedDateInput">
+          <button class="played-add-btn" id="ePlayedAddBtn" onclick="addPlayedDate()">+ Add Date</button>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="form-group">
+        <label class="form-label" for="eNotes">Notes</label>
+        <textarea class="form-textarea" id="eNotes" placeholder="Optional notes…"></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-danger" onclick="showDeleteConfirm()">🗑 Delete</button>
+        <button class="btn-primary" id="btnSaveEdit" onclick="saveEdit()">Save Changes</button>
+      </div>
+
+      <!-- Inline delete confirm -->
+      <div class="confirm-delete" id="confirmDelete">
+        <p>Delete <strong id="confirmDeleteText"></strong> from your collection? This can't be undone.</p>
+        <div class="confirm-delete-actions">
+          <button class="confirm-btn confirm-btn-no" onclick="hideDeleteConfirm()">Cancel</button>
+          <button class="confirm-btn confirm-btn-yes" onclick="deleteAlbum()">Yes, delete</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script>
-// ── AUTH CHECK ──
+// ═══════════════════════════════════════════════════════════════════
+//  AUTH CHECK
+// ═══════════════════════════════════════════════════════════════════
 (function() {
   const cookies = document.cookie.split(';').map(c => c.trim());
   const auth = cookies.find(c => c.startsWith('fvc_auth='));
@@ -661,12 +998,15 @@ img{display:block;}
   }
 })();
 
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 //  CONFIG
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxpiyzjp-WrsFFR4QSWAZzoiBGBT8sSDVSA894iXp60A9OTg1HKtMwkgYVTtx7ucMD-PQ/exec';
 
 const PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Crect fill='%23352f28' width='200' height='200'/%3E%3Ccircle cx='100' cy='85' r='30' fill='none' stroke='%236b5e52' stroke-width='2'/%3E%3Cpath d='M91 77 v16 l15-8z' fill='%236b5e52'/%3E%3Ctext x='100' y='138' text-anchor='middle' fill='%236b5e52' font-family='sans-serif' font-size='11'%3ENo Art%3C/text%3E%3C/svg%3E";
+
+// Inline SVG checkmark for played indicator
+const CHECK_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
 
 // Genre → color index (deterministic hash)
 const GENRE_COLORS = ['--g0','--g1','--g2','--g3','--g4','--g5','--g6','--g7','--g8','--g9','--g10','--g11'];
@@ -682,42 +1022,44 @@ function genreColor(g) {
 }
 function genreTagHTML(g) {
   const c = `var(${genreColor(g)})`;
-  return `<span class="genre-tag" style="color:${c};border:1px solid ${c}40;background:${c}18">${g}</span>`;
+  return `<span class="genre-tag" style="color:${c};border:1px solid ${c}40;background:${c}18">${esc(g)}</span>`;
 }
 
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 //  STATE
-// ═══════════════════════════════════════════
-let albums       = [];   // { artist, album, genres:[], favorite, artUrl, rowIndex }
-let artCache     = {};   // key → url
+// ═══════════════════════════════════════════════════════════════════
+let albums       = [];
+let artCache     = {};
 let currentView  = 'grid';
 let activeGenre  = null;
-let showFavsOnly = false;
+let primaryFilter = null;   // 'fav' | 'terra' | 'wish' | null
+let terraSub     = 'all';   // 'all' | 'candidates' | 'played'
 let searchQuery  = '';
 
-// ═══════════════════════════════════════════
+let lightboxIdx  = null;    // currently-open lightbox album index
+let editIdx      = null;    // currently-open edit modal album index
+let addMode      = 'collection'; // 'collection' | 'wishlist'
+
+// ═══════════════════════════════════════════════════════════════════
 //  INIT
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', init);
 
 async function init() {
   setupSearch();
-  setupGenreInput();
+  setupAddGenreInput();
+  setupEditGenreInput();
   await loadFromSheets();
 }
 
 async function loadFromSheets() {
   try {
-    const res  = await fetch(SHEETS_URL);
+    const res = await fetch(SHEETS_URL);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    albums = data.albums || [];
-    // Pre-populate art cache from saved URLs
-    albums.forEach(a => {
-      if (a.artUrl) artCache[artKey(a)] = a.artUrl;
-    });
+    albums = (data.albums || []).map(normalizeAlbum);
+    albums.forEach(a => { if (a.artUrl) artCache[artKey(a)] = a.artUrl; });
     renderAll();
-    // Fetch missing art in the background — errors are silent
     fetchMissingArt().catch(()=>{});
   } catch(err) {
     console.error('Failed to load from Sheets:', err);
@@ -729,14 +1071,28 @@ async function loadFromSheets() {
   }
 }
 
+function normalizeAlbum(a) {
+  return {
+    artist:             a.artist || '',
+    album:              a.album || '',
+    genres:             Array.isArray(a.genres) ? a.genres : [],
+    favorite:           !!a.favorite,
+    artUrl:             a.artUrl || '',
+    terranautCandidate: !!a.terranautCandidate,
+    playedDates:        Array.isArray(a.playedDates) ? a.playedDates.slice() : [],
+    wishlist:           !!a.wishlist,
+    notes:              a.notes || '',
+    rowIndex:           a.rowIndex
+  };
+}
+
 function artKey(a) { return `${a.artist}|||${a.album}`; }
 
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 //  ART FETCHING
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 async function fetchMissingArt() {
   const missing = albums.filter(a => !artCache[artKey(a)]);
-  // One at a time with a delay to stay under iTunes rate limit
   for (let i = 0; i < missing.length; i++) {
     const a = missing[i];
     try {
@@ -752,20 +1108,19 @@ async function fetchMissingArt() {
     } catch(e) {
       artCache[artKey(a)] = PLACEHOLDER;
     }
-    await sleep(1500); // 1.5s between each fetch
+    await sleep(1500);
   }
 }
 
 async function fetchArtForAlbum(artist, album) {
   try {
-    const q   = encodeURIComponent(`${artist} ${album}`);
+    const q = encodeURIComponent(`${artist} ${album}`);
     const res = await fetch(`https://itunes.apple.com/search?term=${q}&media=music&entity=album&limit=1`);
     if (!res.ok) return PLACEHOLDER;
-    const d   = await res.json();
+    const d = await res.json();
     if (d.results && d.results.length) {
       return d.results[0].artworkUrl100
-        .replace('100x100','400x400')
-        .replace(/^http:/,'https:');
+        .replace('100x100','400x400').replace(/^http:/,'https:');
     }
   } catch(e) { /* silent */ }
   return PLACEHOLDER;
@@ -773,9 +1128,9 @@ async function fetchArtForAlbum(artist, album) {
 
 async function fetchArtOptions(artist, album) {
   try {
-    const q   = encodeURIComponent(`${artist} ${album}`);
+    const q = encodeURIComponent(`${artist} ${album}`);
     const res = await fetch(`https://itunes.apple.com/search?term=${q}&media=music&entity=album&limit=8`);
-    const d   = await res.json();
+    const d = await res.json();
     if (d.results && d.results.length) {
       return d.results.map(r => ({
         url:   r.artworkUrl100.replace('100x100','400x400').replace(/^http:/,'https:'),
@@ -787,33 +1142,58 @@ async function fetchArtOptions(artist, album) {
   return [];
 }
 
-function getArt(a) {
-  return artCache[artKey(a)] || PLACEHOLDER;
-}
-
+function getArt(a) { return artCache[artKey(a)] || PLACEHOLDER; }
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-// ═══════════════════════════════════════════
-//  RENDER ALL
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
+//  TOP-LEVEL RENDER
+// ═══════════════════════════════════════════════════════════════════
 function renderAll() {
-  renderStats();
+  renderHeader();
   renderFilters();
+  renderTerraSub();
   renderCurrent();
 }
 
-function renderStats() {
-  const total    = albums.length;
-  const artists  = new Set(albums.map(a => a.artist)).size;
-  const favs     = albums.filter(a => a.favorite).length;
-  document.getElementById('statRecords').textContent = total;
-  document.getElementById('statArtists').textContent = artists;
-  document.getElementById('statFavs').textContent    = favs;
+function renderHeader() {
+  const title = document.getElementById('headerTitle');
+  const stats = document.getElementById('headerStats');
+
+  const owned   = albums.filter(a => !a.wishlist);
+  const wishes  = albums.filter(a => a.wishlist);
+
+  if (primaryFilter === 'wish') {
+    title.textContent = 'The Wishlist';
+    const artists = new Set(wishes.map(a => a.artist)).size;
+    stats.innerHTML = `
+      <div><div class="header-stat-num wishlist-mode">${wishes.length}</div><div class="header-stat-label">On the Wishlist</div></div>
+      <div><div class="header-stat-num wishlist-mode">${artists}</div><div class="header-stat-label">Artists</div></div>
+    `;
+    return;
+  }
+
+  title.textContent = 'The Faas Vinyl Collection';
+
+  const total    = owned.length;
+  const artists  = new Set(owned.map(a => a.artist)).size;
+  const favs     = owned.filter(a => a.favorite).length;
+  const terraC   = owned.filter(a => a.terranautCandidate).length;
+  const terraP   = owned.filter(a => (a.playedDates||[]).length > 0).length;
+
+  stats.innerHTML = `
+    <div><div class="header-stat-num">${total}</div><div class="header-stat-label">Records</div></div>
+    <div><div class="header-stat-num">${artists}</div><div class="header-stat-label">Artists</div></div>
+    <div><div class="header-stat-num">${favs}</div><div class="header-stat-label">Favorites</div></div>
+    <div><div class="header-stat-num">${terraC}</div><div class="header-stat-label">Terranaut Candidates</div></div>
+    <div><div class="header-stat-num">${terraP}</div><div class="header-stat-label">Played at Terranaut</div></div>
+  `;
 }
 
 function renderFilters() {
+  // Genre dropdown counts depend on which bucket we're viewing
+  const bucket = (primaryFilter === 'wish') ? albums.filter(a => a.wishlist) : albums.filter(a => !a.wishlist);
   const counts = {};
-  albums.forEach(a => (a.genres||[]).forEach(g => {
+  bucket.forEach(a => (a.genres||[]).forEach(g => {
     counts[g] = (counts[g]||0) + 1;
   }));
   const sorted = Object.entries(counts).sort((a,b) => a[0].localeCompare(b[0]));
@@ -827,69 +1207,97 @@ function renderFilters() {
     opt.textContent = `${g} (${c})`;
     sel.appendChild(opt);
   });
-  // Restore selection if still valid
-  if (current && counts[current]) sel.value = current;
+  if (current && counts[current]) sel.value = current; else { sel.value = ''; activeGenre = null; }
 
   sel.classList.toggle('active', !!activeGenre);
-  document.getElementById('favBtn').classList.toggle('active', showFavsOnly);
+  document.getElementById('favBtn').classList.toggle('active',   primaryFilter === 'fav');
+  document.getElementById('terraBtn').classList.toggle('active', primaryFilter === 'terra');
+  document.getElementById('wishBtn').classList.toggle('active',  primaryFilter === 'wish');
+}
+
+function renderTerraSub() {
+  const wrap = document.getElementById('terraSub');
+  wrap.classList.toggle('visible', primaryFilter === 'terra');
+  wrap.querySelectorAll('.terra-sub-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.terraSub === terraSub);
+  });
 }
 
 function onGenreSelect() {
-  activeGenre  = document.getElementById('genreSelect').value || null;
-  showFavsOnly = false;
-  document.getElementById('favBtn').classList.remove('active');
+  activeGenre = document.getElementById('genreSelect').value || null;
   document.getElementById('genreSelect').classList.toggle('active', !!activeGenre);
   renderCurrent();
 }
 
-function toggleFavFilter() {
-  showFavsOnly = !showFavsOnly;
-  if (showFavsOnly) {
+function setPrimaryFilter(which) {
+  // Toggle off if same
+  if (primaryFilter === which) {
+    primaryFilter = null;
+  } else {
+    primaryFilter = which;
+  }
+  // Reset terra sub when leaving terra
+  if (primaryFilter !== 'terra') terraSub = 'all';
+
+  // When entering wishlist, clear the genre filter so we re-show wishlist genres only
+  if (primaryFilter === 'wish') {
     activeGenre = null;
     document.getElementById('genreSelect').value = '';
-    document.getElementById('genreSelect').classList.remove('active');
   }
-  document.getElementById('favBtn').classList.toggle('active', showFavsOnly);
+
+  renderAll();
+}
+
+function setTerraSub(s) {
+  terraSub = s;
+  renderTerraSub();
   renderCurrent();
 }
 
-function setFilter(genre, favsOnly) {
-  activeGenre  = genre;
-  showFavsOnly = favsOnly;
-  renderFilters();
-  renderCurrent();
-}
-
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 //  FILTERED + SORTED DATA
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 function getFiltered() {
-  let list = [...albums];
+  // Step 1: pick the bucket (wishlist vs owned). NEVER mix.
+  let list = (primaryFilter === 'wish')
+    ? albums.filter(a => a.wishlist)
+    : albums.filter(a => !a.wishlist);
 
-  if (showFavsOnly) list = list.filter(a => a.favorite);
-  if (activeGenre)  list = list.filter(a => (a.genres||[]).includes(activeGenre));
+  // Step 2: apply primary filter
+  if (primaryFilter === 'fav') list = list.filter(a => a.favorite);
+  if (primaryFilter === 'terra') {
+    if (terraSub === 'candidates') list = list.filter(a => a.terranautCandidate);
+    else if (terraSub === 'played') list = list.filter(a => (a.playedDates||[]).length > 0);
+    else list = list.filter(a => a.terranautCandidate || (a.playedDates||[]).length > 0);
+  }
 
+  // Step 3: genre filter
+  if (activeGenre) list = list.filter(a => (a.genres||[]).includes(activeGenre));
+
+  // Step 4: search
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
     list = list.filter(a =>
       a.artist.toLowerCase().includes(q) ||
       a.album.toLowerCase().includes(q)  ||
-      (a.genres||[]).some(g => g.toLowerCase().includes(q))
+      (a.genres||[]).some(g => g.toLowerCase().includes(q)) ||
+      (a.notes||'').toLowerCase().includes(q)
     );
   }
 
+  // Step 5: sort
   const sort = document.getElementById('sortSelect').value;
   if (sort === 'artist-az') list.sort((a,b) => a.artist.localeCompare(b.artist));
   if (sort === 'artist-za') list.sort((a,b) => b.artist.localeCompare(a.artist));
   if (sort === 'album-az')  list.sort((a,b) => a.album.localeCompare(b.album));
-  // 'added' = sheet order (already ordered by insertion, newest first)
+  // 'added' = sheet order
 
   return list;
 }
 
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 //  VIEW SWITCHING
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 function setView(v) {
   currentView = v;
   document.getElementById('btnGrid').classList.toggle('active', v==='grid');
@@ -902,9 +1310,9 @@ function renderCurrent() {
   else renderList();
 }
 
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 //  GRID VIEW
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 function renderGrid() {
   const filtered = getFiltered();
   updateResultsCount(filtered.length);
@@ -912,14 +1320,28 @@ function renderGrid() {
   if (!filtered.length) { showEmpty(); return; }
 
   const html = filtered.map((a, i) => {
-    const art      = getArt(a);
-    const idx      = albums.indexOf(a);
-    const favClass = a.favorite ? 'active' : '';
-    const genreTags= (a.genres||[]).map(genreTagHTML).join('');
-    const delay    = Math.min(i * 30, 300);
+    const art       = getArt(a);
+    const idx       = albums.indexOf(a);
+    const favClass  = a.favorite ? 'active' : '';
+    const genreTags = (a.genres||[]).map(genreTagHTML).join('');
+    const delay     = Math.min(i * 30, 300);
+    const playCount = (a.playedDates||[]).length;
+
+    // Top-left badge: green checkmark for played (with count if >1), or yellow dot for candidate
+    let topLeft = '';
+    if (playCount > 0) {
+      topLeft = `<div class="card-terra-check">
+        ${CHECK_SVG}
+        ${playCount > 1 ? `<span class="card-terra-check-count">×${playCount}</span>` : ''}
+      </div>`;
+    } else if (a.terranautCandidate) {
+      topLeft = `<div class="card-terra-candidate" title="Terranaut candidate">●</div>`;
+    }
+
     return `
     <div class="album-card" style="animation-delay:${delay}ms">
       <div class="card-art-wrap">
+        ${topLeft}
         <img class="card-art" src="${art}" alt="${esc(a.artist)} - ${esc(a.album)}"
              loading="lazy" onerror="this.src='${PLACEHOLDER}'"
              onclick="event.stopPropagation();openLightbox(${idx})">
@@ -937,9 +1359,9 @@ function renderGrid() {
   document.getElementById('content').innerHTML = `<div class="grid">${html}</div>`;
 }
 
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 //  LIST VIEW
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 function renderList() {
   const filtered = getFiltered();
   updateResultsCount(filtered.length);
@@ -947,14 +1369,29 @@ function renderList() {
   if (!filtered.length) { showEmpty(); return; }
 
   const rows = filtered.map(a => {
-    const art      = getArt(a);
-    const idx      = albums.indexOf(a);
-    const favClass = a.favorite ? 'active' : '';
-    const genreTags= (a.genres||[]).map(genreTagHTML).join('');
+    const art       = getArt(a);
+    const idx       = albums.indexOf(a);
+    const favClass  = a.favorite ? 'active' : '';
+    const genreTags = (a.genres||[]).map(genreTagHTML).join('');
+    const playCount = (a.playedDates||[]).length;
+
+    let listBadge = '';
+    if (playCount > 0) {
+      listBadge = `<div class="list-terra-check" title="Played at Terranaut">${CHECK_SVG}</div>`;
+      if (playCount > 1) {
+        listBadge += `<div class="list-terra-count">×${playCount}</div>`;
+      }
+    }
+
     return `
     <div class="list-row">
-      <img class="list-thumb" src="${art}" alt="" loading="lazy" onerror="this.src='${PLACEHOLDER}'">
-      <div class="list-info">
+      <div class="list-thumb-wrap">
+        <img class="list-thumb" src="${art}" alt="" loading="lazy"
+             onerror="this.src='${PLACEHOLDER}'"
+             onclick="openLightbox(${idx})">
+        ${listBadge}
+      </div>
+      <div class="list-info" onclick="openLightbox(${idx})">
         <div class="list-artist">${esc(a.artist)}</div>
         <div class="list-album">${esc(a.album)}</div>
         <div class="list-genres">${genreTags}</div>
@@ -968,30 +1405,47 @@ function renderList() {
 }
 
 function showEmpty() {
+  const isWishlist = primaryFilter === 'wish';
+  const icon = isWishlist ? '📝' : '🎵';
+  const msg  = (() => {
+    if (searchQuery) return 'No records match your search.';
+    if (isWishlist)  return 'Your wishlist is empty.';
+    if (primaryFilter === 'terra' && terraSub === 'played')     return 'You haven\'t brought anything to Terranaut yet.';
+    if (primaryFilter === 'terra' && terraSub === 'candidates') return 'No Terranaut candidates yet — mark some albums as ones you\'d like to spin.';
+    if (primaryFilter === 'terra') return 'No Terranaut records yet.';
+    if (primaryFilter === 'fav')   return 'No favorites yet.';
+    return 'No records match your filters.';
+  })();
+  const cta = isWishlist
+    ? `<button class="empty-cta" onclick="openAddModal('wishlist')">+ Add to Wishlist</button>`
+    : '';
   document.getElementById('content').innerHTML = `
     <div class="empty">
-      <div class="empty-icon">🎵</div>
-      <p>No records match your search.</p>
+      <div class="empty-icon">${icon}</div>
+      <p>${msg}</p>
+      ${cta}
     </div>`;
 }
 
 function updateResultsCount(n) {
-  const total = albums.length;
+  const bucket = (primaryFilter === 'wish')
+    ? albums.filter(a => a.wishlist)
+    : albums.filter(a => !a.wishlist);
+  const total = bucket.length;
+  const word  = (primaryFilter === 'wish') ? 'wishlist items' : 'records';
   document.getElementById('resultsCount').textContent =
-    n === total ? `${total} records` : `${n} of ${total} records`;
+    n === total ? `${total} ${word}` : `${n} of ${total} ${word}`;
 }
 
-// ═══════════════════════════════════════════
-//  FAVORITES
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
+//  FAVORITES (quick toggle from card)
+// ═══════════════════════════════════════════════════════════════════
 async function toggleFav(idx) {
   const a = albums[idx];
   a.favorite = !a.favorite;
-  renderStats();
-  renderFilters();
+  renderHeader();
   renderCurrent();
 
-  // Persist to sheet
   try {
     await fetch(SHEETS_URL, {
       method:'POST',
@@ -1000,9 +1454,9 @@ async function toggleFav(idx) {
   } catch(e) { console.warn('Failed to save favorite:', e); }
 }
 
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 //  SEARCH
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 function setupSearch() {
   let t;
   document.getElementById('searchBox').addEventListener('input', e => {
@@ -1022,27 +1476,51 @@ function clearSearch() {
   renderCurrent();
 }
 
-// ═══════════════════════════════════════════
-//  ADD ALBUM MODAL
-// ═══════════════════════════════════════════
-let selectedArtUrl = null;
-let formGenres     = [];   // array of genre strings being built
+// ═══════════════════════════════════════════════════════════════════
+//  LIGHTBOX
+// ═══════════════════════════════════════════════════════════════════
+function openLightbox(idx) {
+  const a = albums[idx];
+  lightboxIdx = idx;
+  document.getElementById('lightboxImg').src        = getArt(a);
+  document.getElementById('lightboxImg').alt        = `${a.artist} — ${a.album}`;
+  document.getElementById('lightboxArtist').textContent = a.artist;
+  document.getElementById('lightboxAlbum').textContent  = a.album;
+  const editBtn = document.getElementById('lightboxEdit');
+  editBtn.classList.toggle('wishlist', a.wishlist);
+  document.getElementById('lightboxEditLabel').textContent = a.wishlist ? 'Edit Wishlist Item' : 'Edit';
+  document.getElementById('lightbox').classList.add('open');
+}
 
-function openAddModal() {
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  lightboxIdx = null;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  ADD MODAL
+// ═══════════════════════════════════════════════════════════════════
+let formGenres = [];
+let selectedArtUrl = null;
+
+function openAddModal(initialMode) {
   document.getElementById('addModal').classList.add('open');
-  document.getElementById('fArtist').value   = '';
-  document.getElementById('fAlbum').value    = '';
-  document.getElementById('fFavorite').checked = false;
-  document.getElementById('genreText').value = '';
+  document.getElementById('fArtist').value      = '';
+  document.getElementById('fAlbum').value       = '';
+  document.getElementById('fFavorite').checked  = false;
+  document.getElementById('fTerraCandidate').checked = false;
+  document.getElementById('fNotes').value       = '';
+  document.getElementById('genreText').value    = '';
   document.getElementById('artSection').classList.remove('visible');
   document.getElementById('artOptions').innerHTML = '';
   document.getElementById('artLoading').style.display = 'none';
   selectedArtUrl = null;
-  formGenres     = [];
-  renderGenrePills();
+  formGenres = [];
+  renderAddGenrePills();
+
+  setAddMode(initialMode || 'collection');
+
   document.getElementById('btnSubmit').disabled = false;
-  document.getElementById('btnSubmit').textContent = 'Add to Collection';
-  // Focus artist field after animation
   setTimeout(() => document.getElementById('fArtist').focus(), 80);
 }
 
@@ -1050,63 +1528,121 @@ function closeAddModal() {
   document.getElementById('addModal').classList.remove('open');
 }
 
-function handleOverlayClick(e) {
-  if (e.target === document.getElementById('addModal')) closeAddModal();
+function setAddMode(mode) {
+  addMode = mode;
+  const collectionBtn = document.getElementById('modeCollectionBtn');
+  const wishlistBtn   = document.getElementById('modeWishlistBtn');
+  collectionBtn.classList.toggle('active', mode === 'collection');
+  wishlistBtn.classList.toggle('active',   mode === 'wishlist');
+
+  document.getElementById('addModalTitle').textContent = mode === 'wishlist' ? 'Add to Wishlist' : 'Add a Record';
+
+  // Hide favorite + terranaut-candidate when wishlist mode
+  document.getElementById('favoriteRow').style.display       = mode === 'wishlist' ? 'none' : '';
+  document.getElementById('terraCandidateRow').style.display = mode === 'wishlist' ? 'none' : '';
+
+  const btn = document.getElementById('btnSubmit');
+  if (mode === 'wishlist') {
+    btn.textContent = 'Add to Wishlist';
+    btn.classList.add('wishlist');
+  } else {
+    btn.textContent = 'Add to Collection';
+    btn.classList.remove('wishlist');
+  }
 }
 
-// ── Genre pill input ──────────────────────
-function setupGenreInput() {
+function handleOverlayClick(e, modalId) {
+  if (e.target.id === modalId) {
+    if (modalId === 'addModal')  closeAddModal();
+    if (modalId === 'editModal') closeEditModal();
+  }
+}
+
+// ── Genre pill input: Add form ──────────────
+function setupAddGenreInput() {
   const input = document.getElementById('genreText');
   input.addEventListener('keydown', e => {
     if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault();
-      commitGenre(input.value);
-    }
-    if (e.key === 'Backspace' && !input.value && formGenres.length) {
+      commitAddGenre(input.value);
+    } else if (e.key === 'Backspace' && !input.value && formGenres.length) {
       formGenres.pop();
-      renderGenrePills();
+      renderAddGenrePills();
     }
   });
   input.addEventListener('blur', () => {
-    if (input.value.trim()) commitGenre(input.value);
+    if (input.value.trim()) commitAddGenre(input.value);
   });
 }
-
-function commitGenre(raw) {
-  const val = raw.replace(/,/g,'').trim();
+function commitAddGenre(raw) {
+  const val = raw.replace(/,/g, '').trim();
   if (val && !formGenres.includes(val)) {
     formGenres.push(val);
-    renderGenrePills();
+    renderAddGenrePills();
   }
   document.getElementById('genreText').value = '';
 }
-
-function removeGenre(g) {
+function removeAddGenre(g) {
   formGenres = formGenres.filter(x => x !== g);
-  renderGenrePills();
+  renderAddGenrePills();
+}
+function renderAddGenrePills() {
+  renderGenrePillsInto('genreWrap', 'genreText', formGenres, removeAddGenre);
 }
 
-function renderGenrePills() {
-  const wrap = document.getElementById('genreWrap');
-  // Remove existing pills (keep the text input)
+// ── Genre pill input: Edit form ─────────────
+function setupEditGenreInput() {
+  const input = document.getElementById('eGenreText');
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      commitEditGenre(input.value);
+    } else if (e.key === 'Backspace' && !input.value && editGenres.length) {
+      editGenres.pop();
+      renderEditGenrePills();
+    }
+  });
+  input.addEventListener('blur', () => {
+    if (input.value.trim()) commitEditGenre(input.value);
+  });
+}
+function commitEditGenre(raw) {
+  const val = raw.replace(/,/g, '').trim();
+  if (val && !editGenres.includes(val)) {
+    editGenres.push(val);
+    renderEditGenrePills();
+  }
+  document.getElementById('eGenreText').value = '';
+}
+function removeEditGenre(g) {
+  editGenres = editGenres.filter(x => x !== g);
+  renderEditGenrePills();
+}
+function renderEditGenrePills() {
+  renderGenrePillsInto('eGenreWrap', 'eGenreText', editGenres, removeEditGenre);
+}
+
+// ── Shared pill renderer ──────────────────
+function renderGenrePillsInto(wrapId, inputId, list, removeFn) {
+  const wrap = document.getElementById(wrapId);
   wrap.querySelectorAll('.genre-pill').forEach(el => el.remove());
-  const input = document.getElementById('genreText');
-  formGenres.forEach(g => {
+  const input = document.getElementById(inputId);
+  list.forEach(g => {
     const pill = document.createElement('span');
     pill.className = 'genre-pill';
     const c = `var(${genreColor(g)})`;
     pill.style.cssText = `color:${c};background:${c}18;border:1px solid ${c}40;`;
-    pill.innerHTML = `${esc(g)}<span class="genre-pill-remove" onclick="removeGenre('${esc(g)}')">×</span>`;
+    pill.innerHTML = `${esc(g)}<span class="genre-pill-remove">×</span>`;
+    pill.querySelector('.genre-pill-remove').onclick = () => removeFn(g);
     wrap.insertBefore(pill, input);
   });
-  // Update placeholder visibility
-  input.placeholder = formGenres.length ? '' : 'Type a genre, press Enter or comma…';
+  input.placeholder = list.length ? '' : 'Type a genre, press Enter or comma…';
 }
 
-// ── Art picker ───────────────────────────
+// Art picker
 let artDebounce = null;
-['fArtist','fAlbum'].forEach(id => {
-  document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
+  ['fArtist','fAlbum'].forEach(id => {
     document.getElementById(id).addEventListener('input', () => {
       clearTimeout(artDebounce);
       artDebounce = setTimeout(loadArtPicker, 650);
@@ -1119,9 +1655,9 @@ async function loadArtPicker() {
   const album  = document.getElementById('fAlbum').value.trim();
   if (!artist || !album) return;
 
-  const section  = document.getElementById('artSection');
-  const loading  = document.getElementById('artLoading');
-  const optWrap  = document.getElementById('artOptions');
+  const section = document.getElementById('artSection');
+  const loading = document.getElementById('artLoading');
+  const optWrap = document.getElementById('artOptions');
 
   section.classList.add('visible');
   optWrap.innerHTML = '';
@@ -1164,14 +1700,17 @@ function selectArt(url, el) {
   el.classList.add('selected');
 }
 
-// ── Submit ───────────────────────────────
+// Submit add
 async function submitAlbum() {
   const artist   = document.getElementById('fArtist').value.trim();
   const album    = document.getElementById('fAlbum').value.trim();
-  const favorite = document.getElementById('fFavorite').checked;
+  const favorite = addMode === 'collection' && document.getElementById('fFavorite').checked;
+  const terraCandidate = addMode === 'collection' && document.getElementById('fTerraCandidate').checked;
+  const notes    = document.getElementById('fNotes').value.trim();
+  const isWish   = addMode === 'wishlist';
 
-  // Commit any genre text still in the input
-  commitGenre(document.getElementById('genreText').value);
+  // Commit any in-progress genre
+  commitAddGenre(document.getElementById('genreText').value);
 
   if (!artist || !album) {
     showToast('Artist and album are required', 'error'); return;
@@ -1179,23 +1718,26 @@ async function submitAlbum() {
 
   const btn = document.getElementById('btnSubmit');
   btn.disabled = true;
-  btn.textContent = 'Adding…';
+  btn.textContent = isWish ? 'Adding to wishlist…' : 'Adding…';
 
-  // Resolve art URL
   let artUrl = selectedArtUrl || '';
   if (!artUrl) artUrl = await fetchArtForAlbum(artist, album);
 
   const genresStr = formGenres.join(', ');
 
   try {
-    const res  = await fetch(SHEETS_URL, {
+    const res = await fetch(SHEETS_URL, {
       method:'POST',
       body:JSON.stringify({
         action:'addAlbum',
         artist, album,
         genres: genresStr,
         favorite,
-        artUrl
+        artUrl,
+        terranautCandidate: terraCandidate,
+        playedDates: '',
+        wishlist: isWish,
+        notes
       })
     });
     const data = await res.json();
@@ -1204,24 +1746,23 @@ async function submitAlbum() {
     console.error('Save failed:', e);
     showToast('Failed to save to sheet', 'error');
     btn.disabled = false;
-    btn.textContent = 'Add to Collection';
+    btn.textContent = isWish ? 'Add to Wishlist' : 'Add to Collection';
     return;
   }
 
-  // Add to local state (rowIndex will be 2 since we insert at row 2)
-  // Reload from sheet to get accurate rowIndex
-  const newAlbum = {
+  const newAlbum = normalizeAlbum({
     artist, album,
     genres: formGenres.slice(),
-    favorite,
-    artUrl,
-    rowIndex: 2  // approximate — will be correct on next full reload
-  };
+    favorite, artUrl,
+    terranautCandidate: terraCandidate,
+    playedDates: [],
+    wishlist: isWish,
+    notes,
+    rowIndex: 2
+  });
 
   artCache[artKey(newAlbum)] = artUrl || PLACEHOLDER;
   albums.unshift(newAlbum);
-
-  // Fix rowIndexes: the unshift pushed all existing rows down by 1
   for (let i = 1; i < albums.length; i++) albums[i].rowIndex++;
 
   closeAddModal();
@@ -1229,12 +1770,289 @@ async function submitAlbum() {
   showToast(`Added: ${artist} — ${album}`, 'success');
 
   btn.disabled = false;
-  btn.textContent = 'Add to Collection';
+  setAddMode(addMode); // reset button label
 }
 
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
+//  EDIT MODAL
+// ═══════════════════════════════════════════════════════════════════
+let editGenres = [];
+let editPlayedDates = [];
+
+function openEditModal(idx) {
+  closeLightbox();
+  editIdx = idx;
+  const a = albums[idx];
+
+  document.getElementById('editModalTitle').textContent = a.wishlist ? 'Edit Wishlist Item' : 'Edit Record';
+  document.getElementById('eArtist').value = a.artist;
+  document.getElementById('eAlbum').value  = a.album;
+  document.getElementById('eNotes').value  = a.notes || '';
+  document.getElementById('eFavorite').checked       = !!a.favorite;
+  document.getElementById('eTerraCandidate').checked = !!a.terranautCandidate;
+  document.getElementById('eGenreText').value = '';
+
+  editGenres = (a.genres || []).slice();
+  renderEditGenrePills();
+
+  editPlayedDates = (a.playedDates || []).slice();
+  renderPlayedList();
+  document.getElementById('ePlayedDateInput').value = '';
+
+  // Wishlist mode: hide collection-only sections, show convert button
+  const isWish = a.wishlist;
+  document.getElementById('btnConvert').style.display    = isWish ? 'flex' : 'none';
+  document.getElementById('eFavoriteRow').style.display       = isWish ? 'none' : '';
+  document.getElementById('eTerraCandidateRow').style.display = isWish ? 'none' : '';
+  document.getElementById('ePlayedSection').style.display     = isWish ? 'none' : '';
+
+  hideDeleteConfirm();
+
+  document.getElementById('editModal').classList.add('open');
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').classList.remove('open');
+  editIdx = null;
+  hideDeleteConfirm();
+}
+
+function renderPlayedList() {
+  const list = document.getElementById('ePlayedList');
+  if (!editPlayedDates.length) {
+    list.innerHTML = `<div class="played-list-empty">Not yet played at Terranaut.</div>`;
+    return;
+  }
+  list.innerHTML = editPlayedDates.map(d => `
+    <div class="played-list-item">
+      <div class="played-list-item-date">
+        ${CHECK_SVG}
+        ${formatDate(d)}
+      </div>
+      <button class="played-list-item-remove" onclick="removePlayedDate('${esc(d)}')">×</button>
+    </div>
+  `).join('');
+}
+
+function formatDate(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (!m) return iso;
+  // Build a local-date object to avoid timezone shift
+  const d = new Date(+m[1], +m[2] - 1, +m[3]);
+  return d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+}
+
+function addPlayedDate() {
+  const input = document.getElementById('ePlayedDateInput');
+  let v = input.value;
+  if (!v) {
+    // Default to today if empty
+    v = new Date().toISOString().slice(0, 10);
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) {
+    showToast('Invalid date', 'error');
+    return;
+  }
+  if (editPlayedDates.includes(v)) {
+    showToast('Date already added', 'error');
+    return;
+  }
+  editPlayedDates.push(v);
+  editPlayedDates.sort((a, b) => b.localeCompare(a)); // newest first
+  renderPlayedList();
+  input.value = '';
+}
+
+function removePlayedDate(d) {
+  editPlayedDates = editPlayedDates.filter(x => x !== d);
+  renderPlayedList();
+}
+
+async function saveEdit() {
+  if (editIdx === null) return;
+  const a = albums[editIdx];
+
+  // Commit any in-progress genre
+  commitEditGenre(document.getElementById('eGenreText').value);
+
+  const artist = document.getElementById('eArtist').value.trim();
+  const album  = document.getElementById('eAlbum').value.trim();
+  if (!artist || !album) {
+    showToast('Artist and album are required', 'error');
+    return;
+  }
+  const notes    = document.getElementById('eNotes').value.trim();
+  const favorite = a.wishlist ? false : document.getElementById('eFavorite').checked;
+  let terraCandidate = a.wishlist ? false : document.getElementById('eTerraCandidate').checked;
+
+  // Auto-flip rule: if the original had ZERO play dates and we're now adding at least one,
+  // flip terraCandidate off automatically (even if the checkbox is still checked).
+  const wasUnplayed = (a.playedDates || []).length === 0;
+  const isNowPlayed = editPlayedDates.length > 0;
+  const autoFlippedCandidate = wasUnplayed && isNowPlayed && a.terranautCandidate;
+  if (wasUnplayed && isNowPlayed) {
+    terraCandidate = false;
+  }
+
+  const playedDatesStr = editPlayedDates.join(', ');
+  const genresStr = editGenres.join(', ');
+
+  const btn = document.getElementById('btnSaveEdit');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  try {
+    const res = await fetch(SHEETS_URL, {
+      method:'POST',
+      body:JSON.stringify({
+        action:'updateAlbum',
+        rowIndex: a.rowIndex,
+        artist, album,
+        genres: genresStr,
+        favorite,
+        terranautCandidate: terraCandidate,
+        playedDates: playedDatesStr,
+        notes
+      })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+  } catch(e) {
+    console.error('Save failed:', e);
+    showToast('Failed to save changes', 'error');
+    btn.disabled = false;
+    btn.textContent = 'Save Changes';
+    return;
+  }
+
+  // Update local state
+  // If artist or album changed, the art cache key changes — re-key it
+  const oldKey = artKey(a);
+  a.artist = artist;
+  a.album = album;
+  a.genres = editGenres.slice();
+  a.favorite = favorite;
+  a.terranautCandidate = terraCandidate;
+  a.playedDates = editPlayedDates.slice();
+  a.notes = notes;
+  const newKey = artKey(a);
+  if (oldKey !== newKey && artCache[oldKey]) {
+    artCache[newKey] = artCache[oldKey];
+  }
+
+  closeEditModal();
+  renderAll();
+  if (autoFlippedCandidate) {
+    showToast(`Updated — moved from Candidate to Played`, 'success');
+  } else {
+    showToast(`Updated: ${artist} — ${album}`, 'success');
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Save Changes';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  CONVERT WISHLIST → COLLECTION
+// ═══════════════════════════════════════════════════════════════════
+async function convertWishlistToOwned() {
+  if (editIdx === null) return;
+  const a = albums[editIdx];
+  if (!a.wishlist) return;
+
+  const btn = document.getElementById('btnConvert');
+  btn.disabled = true;
+
+  // First save any edits in the form, then flip wishlist
+  // (Easier: just send a single updateAlbum with everything)
+  commitEditGenre(document.getElementById('eGenreText').value);
+
+  const artist = document.getElementById('eArtist').value.trim() || a.artist;
+  const album  = document.getElementById('eAlbum').value.trim()  || a.album;
+  const notes  = document.getElementById('eNotes').value.trim();
+  const genresStr = editGenres.join(', ');
+
+  try {
+    const res = await fetch(SHEETS_URL, {
+      method:'POST',
+      body:JSON.stringify({
+        action:'updateAlbum',
+        rowIndex: a.rowIndex,
+        artist, album,
+        genres: genresStr,
+        notes,
+        wishlist: false
+      })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+  } catch(e) {
+    console.error('Convert failed:', e);
+    showToast('Failed to convert', 'error');
+    btn.disabled = false;
+    return;
+  }
+
+  a.artist = artist;
+  a.album = album;
+  a.genres = editGenres.slice();
+  a.notes = notes;
+  a.wishlist = false;
+
+  closeEditModal();
+  // Switch out of wishlist filter so the user immediately sees it landed in the collection
+  primaryFilter = null;
+  renderAll();
+  showToast(`Moved to collection: ${artist} — ${album} 🎉`, 'success');
+  btn.disabled = false;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  DELETE
+// ═══════════════════════════════════════════════════════════════════
+function showDeleteConfirm() {
+  if (editIdx === null) return;
+  const a = albums[editIdx];
+  document.getElementById('confirmDeleteText').textContent = `${a.artist} — ${a.album}`;
+  document.getElementById('confirmDelete').classList.add('visible');
+}
+
+function hideDeleteConfirm() {
+  document.getElementById('confirmDelete').classList.remove('visible');
+}
+
+async function deleteAlbum() {
+  if (editIdx === null) return;
+  const a = albums[editIdx];
+
+  try {
+    const res = await fetch(SHEETS_URL, {
+      method:'POST',
+      body:JSON.stringify({ action:'deleteAlbum', rowIndex: a.rowIndex })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+  } catch(e) {
+    console.error('Delete failed:', e);
+    showToast('Failed to delete', 'error');
+    return;
+  }
+
+  // Remove from local state + fix up rowIndex for albums below
+  const removedRow = a.rowIndex;
+  albums.splice(editIdx, 1);
+  albums.forEach(other => {
+    if (other.rowIndex > removedRow) other.rowIndex--;
+  });
+
+  closeEditModal();
+  renderAll();
+  showToast(`Deleted: ${a.artist} — ${a.album}`, 'success');
+}
+
+// ═══════════════════════════════════════════════════════════════════
 //  UTILITIES
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 function esc(s) {
   return String(s)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;')
@@ -1245,29 +2063,17 @@ function esc(s) {
 function showToast(msg, type) {
   const t = document.getElementById('toast');
   t.textContent = msg;
-  t.className   = `toast toast-${type} show`;
+  t.className   = `toast toast-${type||'success'} show`;
   setTimeout(() => t.classList.remove('show'), 3200);
 }
 
-// ═══════════════════════════════════════════
-//  LIGHTBOX
-// ═══════════════════════════════════════════
-function openLightbox(idx) {
-  const a   = albums[idx];
-  const art = getArt(a);
-  document.getElementById('lightboxImg').src        = art;
-  document.getElementById('lightboxImg').alt        = `${a.artist} — ${a.album}`;
-  document.getElementById('lightboxArtist').textContent = a.artist;
-  document.getElementById('lightboxAlbum').textContent  = a.album;
-  document.getElementById('lightbox').classList.add('open');
-}
-
-function closeLightbox() {
-  document.getElementById('lightbox').classList.remove('open');
-}
-
+// Keyboard shortcuts
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeAddModal(); closeLightbox(); }
+  if (e.key === 'Escape') {
+    closeAddModal();
+    closeEditModal();
+    closeLightbox();
+  }
 });
 </script>
 </body>
