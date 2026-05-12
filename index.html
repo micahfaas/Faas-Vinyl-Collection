@@ -106,6 +106,7 @@ img{display:block;}
   color:var(--wg);margin-top:2px;
 }
 .header-stat-num.wishlist-mode { color:var(--blue-l); }
+.header-stat-num.terra-mode    { color:var(--green-l); }
 
 /* ── CONTROLS ── */
 .controls {
@@ -1159,9 +1160,10 @@ function renderHeader() {
   const title = document.getElementById('headerTitle');
   const stats = document.getElementById('headerStats');
 
-  const owned   = albums.filter(a => !a.wishlist);
-  const wishes  = albums.filter(a => a.wishlist);
+  const owned  = albums.filter(a => !a.wishlist);
+  const wishes = albums.filter(a => a.wishlist);
 
+  // ── Wishlist mode ──
   if (primaryFilter === 'wish') {
     title.textContent = 'The Wishlist';
     const artists = new Set(wishes.map(a => a.artist)).size;
@@ -1174,18 +1176,26 @@ function renderHeader() {
 
   title.textContent = 'The Faas Vinyl Collection';
 
-  const total    = owned.length;
-  const artists  = new Set(owned.map(a => a.artist)).size;
-  const favs     = owned.filter(a => a.favorite).length;
-  const terraC   = owned.filter(a => a.terranautCandidate).length;
-  const terraP   = owned.filter(a => (a.playedDates||[]).length > 0).length;
+  // ── Terranaut mode: only show Played + Candidates ──
+  if (primaryFilter === 'terra') {
+    const terraP = owned.filter(a => (a.playedDates||[]).length > 0).length;
+    const terraC = owned.filter(a => a.terranautCandidate).length;
+    stats.innerHTML = `
+      <div><div class="header-stat-num terra-mode">${terraP}</div><div class="header-stat-label">Played</div></div>
+      <div><div class="header-stat-num terra-mode">${terraC}</div><div class="header-stat-label">Candidates</div></div>
+    `;
+    return;
+  }
+
+  // ── Default (All / Favorites): Records, Artists, Favorites ──
+  const total   = owned.length;
+  const artists = new Set(owned.map(a => a.artist)).size;
+  const favs    = owned.filter(a => a.favorite).length;
 
   stats.innerHTML = `
     <div><div class="header-stat-num">${total}</div><div class="header-stat-label">Records</div></div>
     <div><div class="header-stat-num">${artists}</div><div class="header-stat-label">Artists</div></div>
     <div><div class="header-stat-num">${favs}</div><div class="header-stat-label">Favorites</div></div>
-    <div><div class="header-stat-num">${terraC}</div><div class="header-stat-label">Terranaut Candidates</div></div>
-    <div><div class="header-stat-num">${terraP}</div><div class="header-stat-label">Played at Terranaut</div></div>
   `;
 }
 
