@@ -1653,8 +1653,7 @@ async function loadTracklist(idx) {
     renderTracklist(tracks, idx);
   } catch(e) {
     if (detailIdx !== idx) return;   // user already moved on
-    box.innerHTML = `<div class="detail-empty">Couldn't load the tracklist — tap to retry.`
-      + `<br><span style="font-size:10px;opacity:.6;word-break:break-word">${esc(String(e && e.message || e))}</span></div>`;
+    box.innerHTML = `<div class="detail-empty">Couldn't load the tracklist — tap to retry.</div>`;
     box.querySelector('.detail-empty').onclick = () => loadTracklist(idx);
   }
 }
