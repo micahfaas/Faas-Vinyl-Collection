@@ -160,11 +160,21 @@ img{display:block;}
 }
 .sort-select:focus { border-color:var(--amber-d); }
 
+/* ── SORT + GENRE ROW ── */
+.controls-row2 {
+  display:flex;gap:8px;align-items:center;
+  padding:8px 16px;background:var(--bg);
+  border-bottom:1px solid var(--border);
+}
+.controls-row2 .sort-select,
+.controls-row2 .filter-select { flex:1 1 0;min-width:0; }
+
 /* ── FILTERS ── */
 .filters-wrap {
   border-bottom:1px solid var(--border);background:var(--bg);
-  padding:8px 16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+  padding:8px 16px;display:flex;gap:8px;align-items:center;
 }
+.filters-wrap .filter-pill { flex:1 1 0;justify-content:center;min-width:0; }
 .filter-select {
   padding:6px 10px;border-radius:6px;border:1px solid var(--border);
   background:var(--bg2);color:var(--cream-d);font-size:11px;
@@ -867,24 +877,27 @@ img{display:block;}
   <div class="ctrl-sep"></div>
   <button class="view-btn active" id="btnGrid" onclick="setView('grid')">Grid</button>
   <button class="view-btn"        id="btnList" onclick="setView('list')">List</button>
-  <div class="ctrl-sep"></div>
+</div>
+
+<!-- SORT + GENRE -->
+<div class="controls-row2">
   <select class="sort-select" id="sortSelect" onchange="renderCurrent()">
     <option value="artist-az">Artist A–Z</option>
     <option value="artist-za">Artist Z–A</option>
     <option value="album-az">Album A–Z</option>
     <option value="added">Recently Added</option>
   </select>
+  <select class="filter-select" id="genreSelect" onchange="onGenreSelect()">
+    <option value="">All Genres</option>
+  </select>
+  <button class="filter-clear" id="clearFiltersBtn" onclick="clearFilters()" title="Clear all filters">✕ Clear</button>
 </div>
 
 <!-- FILTERS -->
 <div class="filters-wrap">
-  <select class="filter-select" id="genreSelect" onchange="onGenreSelect()">
-    <option value="">All Genres</option>
-  </select>
   <button class="filter-pill pill-fav"   id="favBtn"   onclick="setPrimaryFilter('fav')">♥ Favorites</button>
   <button class="filter-pill pill-terra" id="terraBtn" onclick="setPrimaryFilter('terra')">🍺 Terranaut</button>
   <button class="filter-pill pill-wish"  id="wishBtn"  onclick="setPrimaryFilter('wish')">📝 Wishlist</button>
-  <button class="filter-clear" id="clearFiltersBtn" onclick="clearFilters()" title="Clear all filters">✕ Clear filters</button>
 </div>
 
 <!-- Terranaut sub-toggle -->
