@@ -2032,7 +2032,7 @@ async function onScanSuccess(decodedText) {
   } catch(e) {
     console.error('Barcode lookup failed:', e);
     closeScanner();
-    showToast('Barcode lookup failed — try again', 'error');
+    showToast('Lookup failed: ' + String(e && e.message || e), 'error');
   }
 }
 
