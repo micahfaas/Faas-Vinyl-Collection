@@ -724,6 +724,60 @@ img{display:block;}
   .modal-body { padding:18px 18px 22px; }
   .lightbox-caption { bottom:84px; }
 }
+/* ── ALBUM DETAIL MODAL ── */
+.detail-top {
+  display:flex;gap:16px;margin-bottom:22px;align-items:flex-start;
+}
+.detail-art {
+  width:110px;height:110px;flex-shrink:0;border-radius:8px;
+  object-fit:cover;background:var(--fg);
+  box-shadow:0 6px 20px rgba(0,0,0,.35);
+}
+.detail-meta { min-width:0;flex:1;padding-top:2px; }
+.detail-artist {
+  font-size:17px;font-weight:700;color:var(--cream);
+  line-height:1.25;margin-bottom:3px;
+}
+.detail-album {
+  font-size:13px;color:var(--cream-d);margin-bottom:10px;line-height:1.3;
+}
+.detail-genres { display:flex;flex-wrap:wrap;gap:5px; }
+.detail-nogenre { font-size:11px;color:var(--wg); }
+
+.detail-section-label {
+  font-family:'JetBrains Mono',monospace;font-size:9px;
+  letter-spacing:2px;text-transform:uppercase;color:var(--wg);
+  margin-bottom:10px;font-weight:500;
+  display:flex;align-items:center;gap:8px;
+}
+.detail-section-label::after {
+  content:'';flex:1;height:1px;background:var(--border);
+}
+.detail-tracklist { display:flex;flex-direction:column; }
+.track-row {
+  display:flex;align-items:baseline;gap:12px;
+  padding:7px 2px;border-bottom:1px solid var(--border);
+  font-size:13px;
+}
+.track-row:last-child { border-bottom:none; }
+.track-pos {
+  flex-shrink:0;min-width:26px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;
+  color:var(--amber);font-weight:500;
+}
+.track-title { flex:1;color:var(--cream);line-height:1.35; }
+.track-dur {
+  flex-shrink:0;font-family:'JetBrains Mono',monospace;
+  font-size:11px;color:var(--wg);
+}
+.detail-loading {
+  display:flex;align-items:center;gap:10px;
+  padding:16px 0;font-size:12px;color:var(--wg);
+}
+.detail-loading .spinner { width:16px;height:16px;border-width:2px; }
+.detail-empty {
+  padding:16px 0;font-size:12px;color:var(--wg);cursor:pointer;
+}
 </style>
 </head>
 <body>
@@ -806,6 +860,30 @@ img{display:block;}
     </svg>
     <span id="lightboxEditLabel">Edit</span>
   </button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- ALBUM DETAIL MODAL                                  -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="detailModal" onclick="handleDetailOverlay(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Details</span>
+      <button class="modal-close" onclick="closeDetailModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-top">
+        <img class="detail-art" id="detailArt" src="" alt="">
+        <div class="detail-meta">
+          <div class="detail-artist" id="detailArtist"></div>
+          <div class="detail-album"  id="detailAlbum"></div>
+          <div class="detail-genres" id="detailGenres"></div>
+        </div>
+      </div>
+      <div class="detail-section-label">Tracklist</div>
+      <div class="detail-tracklist" id="detailTracklist"></div>
+    </div>
+  </div>
 </div>
 
 <!-- FOOTER -->
@@ -1040,6 +1118,8 @@ let searchQuery  = '';
 let lightboxIdx  = null;    // currently-open lightbox album index
 let editIdx      = null;    // currently-open edit modal album index
 let addMode      = 'collection'; // 'collection' | 'wishlist'
+let detailIdx    = null;    // currently-open detail modal album index
+let tracklistCache = {};    // artKey → [{position,title,duration}] (session cache)
 
 // ═══════════════════════════════════════════════════════════════════
 //  INIT
@@ -1352,7 +1432,7 @@ function renderGrid() {
     }
 
     return `
-    <div class="album-card" style="animation-delay:${delay}ms">
+    <div class="album-card" style="animation-delay:${delay}ms" onclick="openDetailModal(${idx})">
       <div class="card-art-wrap">
         ${topLeft}
         <img class="card-art" src="${art}" alt="${esc(a.artist)} - ${esc(a.album)}"
@@ -1404,7 +1484,7 @@ function renderList() {
              onclick="openLightbox(${idx})">
         ${listBadge}
       </div>
-      <div class="list-info" onclick="openLightbox(${idx})">
+      <div class="list-info" onclick="openDetailModal(${idx})">
         <div class="list-artist">${esc(a.artist)}</div>
         <div class="list-album">${esc(a.album)}</div>
         <div class="list-genres">${genreTags}</div>
@@ -1508,6 +1588,89 @@ function openLightbox(idx) {
 function closeLightbox() {
   document.getElementById('lightbox').classList.remove('open');
   lightboxIdx = null;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  ALBUM DETAIL MODAL (+ Discogs tracklist)
+// ═══════════════════════════════════════════════════════════════════
+function openDetailModal(idx) {
+  const a = albums[idx];
+  if (!a) return;
+  detailIdx = idx;
+
+  const artEl = document.getElementById('detailArt');
+  artEl.onerror = () => { artEl.src = PLACEHOLDER; };
+  artEl.src = getArt(a);
+  artEl.alt = `${a.artist} — ${a.album}`;
+
+  document.getElementById('detailArtist').textContent = a.artist;
+  document.getElementById('detailAlbum').textContent  = a.album;
+
+  const genres = a.genres || [];
+  document.getElementById('detailGenres').innerHTML =
+    genres.length ? genres.map(genreTagHTML).join('')
+                  : '<span class="detail-nogenre">No genres</span>';
+
+  document.getElementById('detailModal').classList.add('open');
+  loadTracklist(idx);
+}
+
+function closeDetailModal() {
+  document.getElementById('detailModal').classList.remove('open');
+  detailIdx = null;
+}
+
+function handleDetailOverlay(e) {
+  if (e.target.id === 'detailModal') closeDetailModal();
+}
+
+async function loadTracklist(idx) {
+  const a   = albums[idx];
+  const box = document.getElementById('detailTracklist');
+  const key = artKey(a);
+
+  // Session cache hit → render instantly
+  if (tracklistCache[key]) { renderTracklist(tracklistCache[key], idx); return; }
+
+  box.innerHTML =
+    `<div class="detail-loading"><div class="spinner"></div> Fetching tracklist from Discogs…</div>`;
+
+  try {
+    // Proxy through Apps Script — never call Discogs from the browser.
+    const res  = await fetch(SHEETS_URL, {
+      method:'POST',
+      body: JSON.stringify({
+        action:'getTracklist',
+        rowIndex: a.rowIndex,
+        artist:   a.artist,
+        album:    a.album
+      })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    const tracks = data.tracklist || [];
+    tracklistCache[key] = tracks;
+    renderTracklist(tracks, idx);
+  } catch(e) {
+    if (detailIdx !== idx) return;   // user already moved on
+    box.innerHTML = `<div class="detail-empty">Couldn't load the tracklist — tap to retry.</div>`;
+    box.querySelector('.detail-empty').onclick = () => loadTracklist(idx);
+  }
+}
+
+function renderTracklist(tracks, idx) {
+  if (detailIdx !== idx) return;     // a different album is open now
+  const box = document.getElementById('detailTracklist');
+  if (!tracks || !tracks.length) {
+    box.innerHTML = `<div class="detail-empty">No vinyl tracklist found on Discogs.</div>`;
+    return;
+  }
+  box.innerHTML = tracks.map(t => `
+    <div class="track-row">
+      <span class="track-pos">${esc(t.position || '')}</span>
+      <span class="track-title">${esc(t.title || '')}</span>
+      ${t.duration ? `<span class="track-dur">${esc(t.duration)}</span>` : ''}
+    </div>`).join('');
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -2086,6 +2249,7 @@ document.addEventListener('keydown', e => {
     closeAddModal();
     closeEditModal();
     closeLightbox();
+    closeDetailModal();
   }
 });
 </script>
