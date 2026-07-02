@@ -195,6 +195,16 @@ img{display:block;}
 .pill-wish:hover  { border-color:var(--blue); }
 .pill-wish.active { background:var(--blue);color:#fff;border-color:var(--blue); }
 
+/* Clear-all-filters button — only shown when a filter is active */
+.filter-clear {
+  display:none;margin-left:auto;
+  padding:6px 12px;border-radius:6px;font-size:11px;font-weight:600;
+  border:1px solid var(--border);color:var(--wg);
+  background:var(--bg2);cursor:pointer;transition:all .2s;letter-spacing:.2px;
+}
+.filter-clear:hover   { border-color:var(--red);color:var(--red); }
+.filter-clear.visible { display:inline-flex;align-items:center; }
+
 /* Terranaut sub-toggle */
 .terra-sub {
   display:none;padding:6px 16px 10px;
@@ -874,6 +884,7 @@ img{display:block;}
   <button class="filter-pill pill-fav"   id="favBtn"   onclick="setPrimaryFilter('fav')">♥ Favorites</button>
   <button class="filter-pill pill-terra" id="terraBtn" onclick="setPrimaryFilter('terra')">🍺 Terranaut</button>
   <button class="filter-pill pill-wish"  id="wishBtn"  onclick="setPrimaryFilter('wish')">📝 Wishlist</button>
+  <button class="filter-clear" id="clearFiltersBtn" onclick="clearFilters()" title="Clear all filters">✕ Clear filters</button>
 </div>
 
 <!-- Terranaut sub-toggle -->
@@ -1375,6 +1386,7 @@ function renderFilters() {
   document.getElementById('favBtn').classList.toggle('active',   primaryFilter === 'fav');
   document.getElementById('terraBtn').classList.toggle('active', primaryFilter === 'terra');
   document.getElementById('wishBtn').classList.toggle('active',  primaryFilter === 'wish');
+  updateClearFiltersBtn();
 }
 
 function renderTerraSub() {
@@ -1416,6 +1428,25 @@ function setTerraSub(s) {
   renderCurrent();
 }
 
+// Reset every applied filter: search, genre, and the primary (fav/terra/wish).
+function clearFilters() {
+  searchQuery = '';
+  const sb = document.getElementById('searchBox');
+  if (sb) sb.value = '';
+  document.getElementById('searchClear').classList.remove('visible');
+  activeGenre   = null;
+  document.getElementById('genreSelect').value = '';
+  primaryFilter = null;
+  terraSub      = 'all';
+  renderAll();
+}
+
+// Show the "Clear filters" button only when something is actually filtered.
+function updateClearFiltersBtn() {
+  const anyActive = !!(searchQuery || activeGenre || primaryFilter);
+  document.getElementById('clearFiltersBtn').classList.toggle('visible', anyActive);
+}
+
 // ═══════════════════════════════════════════════════════════════════
 //  FILTERED + SORTED DATA
 // ═══════════════════════════════════════════════════════════════════
@@ -1436,14 +1467,14 @@ function getFiltered() {
   // Step 3: genre filter
   if (activeGenre) list = list.filter(a => (a.genres||[]).includes(activeGenre));
 
-  // Step 4: search
+  // Step 4: search (accent-insensitive: "buble" matches "Bublé")
   if (searchQuery) {
-    const q = searchQuery.toLowerCase();
+    const q = deburr(searchQuery);
     list = list.filter(a =>
-      a.artist.toLowerCase().includes(q) ||
-      a.album.toLowerCase().includes(q)  ||
-      (a.genres||[]).some(g => g.toLowerCase().includes(q)) ||
-      (a.notes||'').toLowerCase().includes(q)
+      deburr(a.artist).includes(q) ||
+      deburr(a.album).includes(q)  ||
+      (a.genres||[]).some(g => deburr(g).includes(q)) ||
+      deburr(a.notes||'').includes(q)
     );
   }
 
@@ -1628,6 +1659,7 @@ function setupSearch() {
     t = setTimeout(() => {
       searchQuery = e.target.value.trim();
       document.getElementById('searchClear').classList.toggle('visible', !!searchQuery);
+      updateClearFiltersBtn();
       renderCurrent();
     }, 180);
   });
@@ -1637,6 +1669,7 @@ function clearSearch() {
   document.getElementById('searchBox').value = '';
   searchQuery = '';
   document.getElementById('searchClear').classList.remove('visible');
+  updateClearFiltersBtn();
   renderCurrent();
 }
 
@@ -2473,6 +2506,11 @@ function esc(s) {
     .replace(/&/g,'&amp;').replace(/</g,'&lt;')
     .replace(/>/g,'&gt;').replace(/"/g,'&quot;')
     .replace(/'/g,'&#39;');
+}
+
+// Lowercase + strip accents/diacritics so "buble" matches "Bublé".
+function deburr(s) {
+  return String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 }
 
 function showToast(msg, type) {
