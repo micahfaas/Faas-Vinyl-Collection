@@ -778,6 +778,52 @@ img{display:block;}
 .detail-empty {
   padding:16px 0;font-size:12px;color:var(--wg);cursor:pointer;
 }
+
+/* ── SCAN BARCODE ── */
+.scan-btn {
+  width:100%;margin-bottom:18px;padding:11px;border-radius:8px;
+  border:1px dashed var(--mg);background:var(--bg2);
+  color:var(--cream-d);font-size:13px;font-weight:600;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:all .2s;
+}
+.scan-btn:hover  { border-color:var(--amber);color:var(--amber); }
+.scan-btn:active { transform:scale(.99); }
+.scan-btn svg    { width:16px;height:16px; }
+
+.scan-overlay {
+  position:fixed;inset:0;z-index:400;
+  background:rgba(10,8,6,.96);
+  display:none;flex-direction:column;
+  padding:20px 16px calc(20px + env(safe-area-inset-bottom));
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+.scan-overlay.open { display:flex; }
+.scan-head {
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:16px;flex-shrink:0;
+}
+.scan-title {
+  font-family:'DM Serif Display',serif;font-size:20px;font-style:italic;color:var(--cream);
+}
+.scan-reader {
+  width:100%;max-width:440px;margin:0 auto;border-radius:12px;overflow:hidden;
+  background:#000;border:1px solid var(--mg);
+}
+.scan-reader video { width:100%!important;display:block; }
+.scan-frame {
+  position:relative;width:100%;max-width:440px;margin:20px auto 0;
+  aspect-ratio:16/10;pointer-events:none;
+}
+.scan-status {
+  max-width:440px;margin:18px auto 0;text-align:center;
+  font-size:13px;color:var(--cream-d);line-height:1.5;
+}
+.scan-status.err { color:var(--red); }
+.scan-hint {
+  max-width:440px;margin:6px auto 0;text-align:center;
+  font-size:11px;color:var(--wg);
+}
 </style>
 </head>
 <body>
@@ -914,6 +960,15 @@ img{display:block;}
         </button>
       </div>
 
+      <!-- Scan barcode -->
+      <button type="button" class="scan-btn" id="scanBtn" onclick="openScanner()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/>
+          <line x1="7" y1="12" x2="17" y2="12"/>
+        </svg>
+        Scan barcode
+      </button>
+
       <!-- Art Picker -->
       <div class="art-section" id="artSection">
         <div class="art-picker-label">Album Art</div>
@@ -971,6 +1026,19 @@ img{display:block;}
 
     </div>
   </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- BARCODE SCANNER OVERLAY                             -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="scan-overlay" id="scanOverlay">
+  <div class="scan-head">
+    <span class="scan-title">Scan a barcode</span>
+    <button class="modal-close" onclick="closeScanner()">✕</button>
+  </div>
+  <div id="reader" class="scan-reader"></div>
+  <div class="scan-status" id="scanStatus">Starting camera…</div>
+  <div class="scan-hint">Hold the record's barcode inside the frame. Good light helps.</div>
 </div>
 
 <!-- ═══════════════════════════════════════════════════ -->
@@ -1876,6 +1944,174 @@ function selectArt(url, el) {
   el.classList.add('selected');
 }
 
+// ═══════════════════════════════════════════════════════════════════
+//  BARCODE SCANNER (phone camera → Discogs → pre-fill Add form)
+// ═══════════════════════════════════════════════════════════════════
+const SCAN_LIB_URL = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
+let html5QrScanner = null;
+let scanLibPromise = null;
+let scanBusy       = false;
+
+// Lazy-load the scanner library only when the user first taps "Scan".
+function loadScanLib() {
+  if (window.Html5Qrcode) return Promise.resolve();
+  if (scanLibPromise) return scanLibPromise;
+  scanLibPromise = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = SCAN_LIB_URL;
+    s.onload = () => resolve();
+    s.onerror = () => { scanLibPromise = null; reject(new Error('lib load failed')); };
+    document.head.appendChild(s);
+  });
+  return scanLibPromise;
+}
+
+async function openScanner() {
+  const overlay = document.getElementById('scanOverlay');
+  const status  = document.getElementById('scanStatus');
+  scanBusy = false;
+  overlay.classList.add('open');
+  status.className = 'scan-status';
+  status.textContent = 'Starting camera…';
+
+  try {
+    await loadScanLib();
+  } catch(e) {
+    status.className = 'scan-status err';
+    status.textContent = 'Couldn’t load the scanner. Check your connection and try again.';
+    return;
+  }
+
+  const F = Html5QrcodeSupportedFormats;
+  const formats = [F.EAN_13, F.EAN_8, F.UPC_A, F.UPC_E, F.CODE_128, F.CODE_39];
+  html5QrScanner = new Html5Qrcode('reader', { formatsToSupport: formats, verbose: false });
+
+  try {
+    await html5QrScanner.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: { width: 260, height: 160 }, aspectRatio: 1.6 },
+      onScanSuccess,
+      () => {}   // per-frame "no code" callback — ignore
+    );
+    status.textContent = 'Point the camera at the barcode…';
+  } catch(e) {
+    console.warn('Camera start failed:', e);
+    status.className = 'scan-status err';
+    status.textContent = 'Camera unavailable. Allow camera access for Safari (Settings → Safari → Camera), then try again — or type the details manually.';
+    html5QrScanner = null;
+  }
+}
+
+async function onScanSuccess(decodedText) {
+  if (scanBusy) return;              // ignore repeat frames while we work
+  scanBusy = true;
+
+  const status = document.getElementById('scanStatus');
+  status.className = 'scan-status';
+  status.textContent = `Looking up ${decodedText}…`;
+
+  await stopScanner();              // release the camera immediately
+
+  try {
+    const res = await fetch(SHEETS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'searchByBarcode', barcode: decodedText })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    if (!data.found) {
+      closeScanner();
+      showToast(`No vinyl match for barcode ${decodedText}`, 'error');
+      return;
+    }
+
+    await prefillFromScan(data);
+    closeScanner();
+    showToast(`Found: ${data.artist} — ${data.album}`, 'success');
+  } catch(e) {
+    console.error('Barcode lookup failed:', e);
+    closeScanner();
+    showToast('Barcode lookup failed — try again', 'error');
+  }
+}
+
+async function stopScanner() {
+  if (!html5QrScanner) return;
+  try { await html5QrScanner.stop(); } catch(e) { /* already stopped */ }
+  try { html5QrScanner.clear(); }      catch(e) { /* noop */ }
+  html5QrScanner = null;
+}
+
+async function closeScanner() {
+  await stopScanner();
+  document.getElementById('scanOverlay').classList.remove('open');
+  scanBusy = false;
+}
+
+// Pre-fill the Add form from a scanned Discogs release.
+async function prefillFromScan(rel) {
+  document.getElementById('fArtist').value = rel.artist || '';
+  document.getElementById('fAlbum').value  = rel.album  || '';
+
+  formGenres = Array.isArray(rel.genres) ? rel.genres.slice(0, 6) : [];
+  renderAddGenrePills();
+
+  // Cache the tracklist so the detail modal shows it instantly once added.
+  if (rel.artist && rel.album && Array.isArray(rel.tracklist) && rel.tracklist.length) {
+    tracklistCache[`${rel.artist}|||${rel.album}`] = rel.tracklist;
+  }
+
+  // Art picker: Discogs cover selected first, plus iTunes alternatives.
+  const section = document.getElementById('artSection');
+  const optWrap = document.getElementById('artOptions');
+  const loading = document.getElementById('artLoading');
+  section.classList.add('visible');
+  optWrap.innerHTML = '';
+  selectedArtUrl = null;
+
+  if (rel.artUrl) {
+    const div = document.createElement('div');
+    div.className = 'art-opt';
+    div.title = 'From Discogs';
+    div.innerHTML = `<img src="${rel.artUrl}" alt="Discogs cover" loading="lazy" onerror="this.parentNode.remove()">`;
+    div.onclick = () => selectArt(rel.artUrl, div);
+    optWrap.appendChild(div);
+    selectArt(rel.artUrl, div);
+  }
+
+  // Fetch iTunes alternatives (nicer squares) without changing the selection.
+  loading.style.display = 'flex';
+  let options = [];
+  try { options = await fetchArtOptions(rel.artist, rel.album); } catch(e) {}
+  loading.style.display = 'none';
+
+  options.forEach(opt => {
+    const div = document.createElement('div');
+    div.className = 'art-opt';
+    div.title = opt.label;
+    div.innerHTML = `<img src="${opt.thumb}" alt="${opt.label}" loading="lazy">`;
+    div.onclick = () => selectArt(opt.url, div);
+    optWrap.appendChild(div);
+  });
+
+  const none = document.createElement('div');
+  none.className = 'art-none';
+  none.textContent = 'No art';
+  none.onclick = () => {
+    selectedArtUrl = null;
+    optWrap.querySelectorAll('.art-opt,.art-none').forEach(el => el.classList.remove('selected'));
+    none.classList.add('selected');
+  };
+  optWrap.appendChild(none);
+
+  // If Discogs gave no art, select the first iTunes option.
+  if (!selectedArtUrl && options.length) {
+    const first = optWrap.querySelector('.art-opt');
+    if (first) selectArt(options[0].url, first);
+  }
+}
+
 // Submit add
 async function submitAlbum() {
   const artist   = document.getElementById('fArtist').value.trim();
@@ -2246,6 +2482,7 @@ function showToast(msg, type) {
 // Keyboard shortcuts
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
+    if (document.getElementById('scanOverlay').classList.contains('open')) { closeScanner(); return; }
     closeAddModal();
     closeEditModal();
     closeLightbox();
