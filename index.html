@@ -1296,10 +1296,13 @@ function getFiltered() {
   }
 
   // Step 5: sort
+  // Ignore a leading "The" when sorting, so "The Darkness" files under D not T
+  function sortName(s){ return String(s).replace(/^the\s+/i,'').trim(); }
+
   const sort = document.getElementById('sortSelect').value;
-  if (sort === 'artist-az') list.sort((a,b) => a.artist.localeCompare(b.artist));
-  if (sort === 'artist-za') list.sort((a,b) => b.artist.localeCompare(a.artist));
-  if (sort === 'album-az')  list.sort((a,b) => a.album.localeCompare(b.album));
+  if (sort === 'artist-az') list.sort((a,b) => sortName(a.artist).localeCompare(sortName(b.artist)));
+  if (sort === 'artist-za') list.sort((a,b) => sortName(b.artist).localeCompare(sortName(a.artist)));
+  if (sort === 'album-az')  list.sort((a,b) => sortName(a.album).localeCompare(sortName(b.album)));
   // 'added' = sheet order
 
   return list;
