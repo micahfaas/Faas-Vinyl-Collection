@@ -247,7 +247,7 @@ img{display:block;}
 .card-art-wrap { position:relative;padding-top:100%;overflow:hidden;background:var(--fg); }
 .card-art {
   position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
-  transition:transform .3s ease;cursor:zoom-in;
+  transition:transform .3s ease;cursor:pointer;
 }
 .album-card:hover .card-art { transform:scale(1.04); }
 @media(pointer:coarse){ .album-card:hover .card-art{transform:none;} }
@@ -326,7 +326,7 @@ img{display:block;}
 .list-thumb {
   width:50px;height:50px;border-radius:5px;object-fit:cover;
   background:var(--fg);
-  cursor:zoom-in;
+  cursor:pointer;
 }
 .list-terra-check {
   position:absolute;top:-4px;left:-4px;
@@ -730,7 +730,7 @@ img{display:block;}
 }
 .detail-art {
   width:110px;height:110px;flex-shrink:0;border-radius:8px;
-  object-fit:cover;background:var(--fg);
+  object-fit:cover;background:var(--fg);cursor:zoom-in;
   box-shadow:0 6px 20px rgba(0,0,0,.35);
 }
 .detail-meta { min-width:0;flex:1;padding-top:2px; }
@@ -873,7 +873,8 @@ img{display:block;}
     </div>
     <div class="modal-body">
       <div class="detail-top">
-        <img class="detail-art" id="detailArt" src="" alt="">
+        <img class="detail-art" id="detailArt" src="" alt="" title="Tap to enlarge"
+             onclick="if(detailIdx!==null)openLightbox(detailIdx)">
         <div class="detail-meta">
           <div class="detail-artist" id="detailArtist"></div>
           <div class="detail-album"  id="detailAlbum"></div>
@@ -1436,8 +1437,7 @@ function renderGrid() {
       <div class="card-art-wrap">
         ${topLeft}
         <img class="card-art" src="${art}" alt="${esc(a.artist)} - ${esc(a.album)}"
-             loading="lazy" onerror="this.src='${PLACEHOLDER}'"
-             onclick="event.stopPropagation();openLightbox(${idx})">
+             loading="lazy" onerror="this.src='${PLACEHOLDER}'">
         <button class="card-fav ${favClass}" title="Favorite"
                 onclick="event.stopPropagation();toggleFav(${idx})">♥</button>
       </div>
@@ -1481,7 +1481,7 @@ function renderList() {
       <div class="list-thumb-wrap">
         <img class="list-thumb" src="${art}" alt="" loading="lazy"
              onerror="this.src='${PLACEHOLDER}'"
-             onclick="openLightbox(${idx})">
+             onclick="openDetailModal(${idx})">
         ${listBadge}
       </div>
       <div class="list-info" onclick="openDetailModal(${idx})">
