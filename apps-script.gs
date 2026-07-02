@@ -85,7 +85,8 @@ function doPost(e) {
     if (action === 'deleteAlbum')      return deleteAlbum(body);
     if (action === 'toggleFavorite')   return toggleFavorite(body);
     if (action === 'updateArt')        return updateArt(body);
-    if (action === 'getTracklist')     return getTracklist(body);   // ← NEW
+    if (action === 'getTracklist')     return getTracklist(body);    // ← NEW (Task 2)
+    if (action === 'searchByBarcode')  return searchByBarcode(body); // ← NEW (Task 3)
 
     return jsonResponse({ error: 'Unknown action: ' + action });
   } catch (err) {
@@ -213,6 +214,82 @@ function getTracklist(body) {
   }
 
   return jsonResponse({ tracklist: tracklist, cached: false });
+}
+
+// ── ACTION: searchByBarcode ─────────────────────────────────────────
+// Discogs barcode lookup (prefers Vinyl). Returns the exact release for
+// pre-filling the Add form:
+//   { found, barcode, artist, album, artUrl, genres:[], tracklist:[...] }
+function searchByBarcode(body) {
+  const barcode = String(body.barcode || '').replace(/\s+/g, '').trim();
+  if (!barcode) return jsonResponse({ found: false });
+
+  const token = PropertiesService.getScriptProperties().getProperty('DISCOGS_TOKEN');
+  if (!token) throw new Error('DISCOGS_TOKEN not set in Script Properties');
+
+  // 1) Search by barcode, preferring Vinyl
+  let search = discogsFetch(
+    'https://api.discogs.com/database/search?type=release&format=Vinyl'
+    + '&barcode=' + encodeURIComponent(barcode) + '&per_page=5&page=1', token);
+
+  // Fallback: any format if no vinyl pressing is indexed under this barcode
+  if (!search || !search.results || !search.results.length) {
+    search = discogsFetch(
+      'https://api.discogs.com/database/search?type=release'
+      + '&barcode=' + encodeURIComponent(barcode) + '&per_page=5&page=1', token);
+  }
+  if (!search || !search.results || !search.results.length) {
+    return jsonResponse({ found: false, barcode: barcode });
+  }
+
+  // 2) Fetch the full release
+  const releaseId = search.results[0].id;
+  const release = releaseId ? discogsFetch('https://api.discogs.com/releases/' + releaseId, token) : null;
+  if (!release) return jsonResponse({ found: false, barcode: barcode });
+
+  // Artist: join names, strip Discogs "(2)" disambiguation suffixes
+  let artist = '';
+  if (release.artists && release.artists.length) {
+    artist = release.artists
+      .map(a => String(a.name || '').replace(/\s*\(\d+\)$/, '').trim())
+      .filter(Boolean)
+      .join(', ');
+  }
+  const album = String(release.title || '');
+
+  // Art: primary image (else first), else the search result cover; force https
+  let artUrl = '';
+  if (release.images && release.images.length) {
+    const primary = release.images.filter(im => im.type === 'primary')[0] || release.images[0];
+    artUrl = String(primary.uri || primary.resource_url || '');
+  }
+  if (!artUrl && search.results[0].cover_image) artUrl = String(search.results[0].cover_image);
+  artUrl = artUrl.replace(/^http:/, 'https:');
+
+  // Genres: prefer styles (more specific), else genres
+  let genres = [];
+  if (release.styles && release.styles.length)      genres = release.styles.slice();
+  else if (release.genres && release.genres.length) genres = release.genres.slice();
+
+  // Tracklist (same mapping as getTracklist)
+  const tracklist = (release.tracklist || [])
+    .filter(t => !t.type_ || t.type_ === 'track')
+    .map(t => ({
+      position: String(t.position || ''),
+      title:    String(t.title || ''),
+      duration: String(t.duration || '')
+    }))
+    .filter(t => t.title);
+
+  return jsonResponse({
+    found:     true,
+    barcode:   barcode,
+    artist:    artist,
+    album:     album,
+    artUrl:    artUrl,
+    genres:    genres,
+    tracklist: tracklist
+  });
 }
 
 // Search Discogs for a Vinyl release and return its tracklist as
